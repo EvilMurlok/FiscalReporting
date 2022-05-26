@@ -1,0 +1,102 @@
+version: '3.9'
+
+networks:
+  fiscalReporting:
+    driver: bridge
+
+volumes:
+  postgres_data_tajikistan: {}
+
+services:
+  server:
+    container_name: fiscal_reporting
+    build:
+      context: .
+    restart: on-failure
+    working_dir: "/app"
+    ports:
+      - "9001:9001"
+    depends_on:
+      - postgres
+    volumes:
+      - ".:/app"
+      - "/app/node_modules"
+    networks:
+      - fiscalReporting
+
+  postgres:
+    container_name: postgres
+    image: 'postgres'
+    ports:
+      - '5433:5433'
+    environment:
+      POSTGRES_DB: 'FiscalReporting'
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'qwerty123'
+    command: -p 5433
+    volumes:
+      - postgres_data_tajikistan:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d FiscalReporting" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 4G
+    networks:
+      - fiscalReporting
+
+#  postgres_exporter:
+#    container_name: exporter
+#    image: prometheuscommunity/postgres-exporter:v0.10.0
+#    environment:
+#      DATA_SOURCE_URI: "postgres:5432/monitoring?sslmode=disable"
+#      DATA_SOURCE_USER: "root"
+#      DATA_SOURCE_PASS: "123456"
+#      PG_EXPORTER_EXTEND_QUERY_PATH: "/etc/postgres_exporter/queries.yaml"
+#    volumes:
+#      - ./queries.yaml:/etc/postgres_exporter/queries.yaml:ro
+#    ports:
+#      - "9187:9187"
+#    restart: unless-stopped
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '0.2'
+#          memory: 500M
+#    networks:
+#      - fiscalReporting
+#
+#  grafana:
+#    container_name: grafana
+#    image: grafana/grafana
+#    volumes:
+#      - ./fiscalReporting/grafana/data:/var/lib/grafana
+#      - ./fiscalReporting/grafana/provisioning:/etc/grafana/provisioning
+#    ports:
+#      - "3000:3000"
+#    networks:
+#      - fiscalReporting
+#
+#  prometheus:
+#    image: prom/prometheus
+#    container_name: prometheus
+#    restart: unless-stopped
+#    volumes:
+#      - ./fiscalReporting/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+#      - ./fiscalReporting/prometheus/data:/prometheus
+#    command:
+#      - '--config.file=/etc/prometheus/prometheus.yml'
+#      - '--storage.tsdb.path=/prometheus'
+#      - '--web.console.libraries=/etc/prometheus/console_libraries'
+#      - '--web.console.templates=/etc/prometheus/consoles'
+#      - '--web.enable-lifecycle'
+#    ports:
+#      - "9090:9090"
+#    networks:
+#      - fiscalReporting
