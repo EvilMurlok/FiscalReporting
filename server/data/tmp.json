@@ -1,0 +1,32 @@
+{
+  "pack": {
+    "lotteryName": "Дурдонаи Гаронбахо",
+    "nominals": [
+      {
+        "value": 0.1,
+        "currentAmount": 1400,
+        "broughtCirculation": 0
+      },
+      {
+        "value": 0.2,
+        "currentAmount": 1300,
+        "broughtCirculation": 0
+      },
+      {
+        "value": 0.3,
+        "currentAmount": 1100,
+        "broughtCirculation": 0
+      },
+      {
+        "value": 0.4,
+        "currentAmount": 2400,
+        "broughtCirculation": 0
+      },
+      {
+        "value": 0.5,
+        "currentAmount": 300,
+        "broughtCirculation": 0
+      }
+    ]
+  }
+}

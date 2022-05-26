@@ -1,10 +1,10 @@
 const { Model, DataTypes } = require('sequelize');
 
-class Lottery extends Model {
-
-}
-
 module.exports = async(sequelize) => {
+    class Lottery extends Model {
+
+    }
+
     return Lottery.init({
         id: {
             type: DataTypes.INTEGER,
@@ -21,10 +21,6 @@ module.exports = async(sequelize) => {
             validate: {
                 notEmpty: {
                     msg: 'Необходимо указать название лотереи'
-                },
-                is: {
-                    args: [/[\w\d ()\/]{7,50}/g],
-                    msg: 'Имя Партнера может иметь от 7 до 50 латинских букв, скобки, слэш, цифры'
                 }
             }
         },
@@ -36,7 +32,7 @@ module.exports = async(sequelize) => {
         }
     }, {
         modelName: 'lottery',
-        tableName: 'Lottery',
+        tableName: 'lottery',
         timestamps: true,
         paranoid: true,
         createdAt: 'created',

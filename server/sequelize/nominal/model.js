@@ -1,10 +1,12 @@
 const { Model, DataTypes } = require('sequelize');
 
-class Nominal extends Model {
 
-}
 
 module.exports = async(sequelize) => {
+    class Nominal extends Model {
+
+    }
+
     return Nominal.init({
         id: {
             type: DataTypes.INTEGER,
@@ -13,24 +15,14 @@ module.exports = async(sequelize) => {
             autoIncrement: true
         },
         value: {
-            type: DataTypes.STRING(3),
+            type: DataTypes.ENUM('0.1', '0.2', '0.3', '0.4', '0.5', '1', '2', '3', '4', '5', '10', '15', '20', '25'),
             unique: {
                 msg: 'Уже есть номинал с таким значением'
             },
             allowNull: false,
             validate: {
-                isIn: {
-                    args: [['0.1', '0.2', '0.3', '0.4', '0.5', '1', '2', '3', '4', '5', '10', '15', '20', '25']],
-                    msg: 'Значение номинала может равнятся только указанным в списке числам:' +
-                        '[\'0.1\', \'0.2\', \'0.3\', \'0.4\', \'0.5\', \'1\', \'2\',' +
-                        '\'3\', \'4\', \'5\', \'10\', \'15\', \'20\', \'25\']'
-                },
                 notEmpty: {
                     msg: 'Необходимо указать значение номинала'
-                },
-                is: {
-                    args: [/[\d.]{1,3}/g],
-                    msg: 'Значение номинала может быть числом с точкой или натуральным числом не более, чем три символа в длину'
                 }
             }
         },
@@ -43,7 +35,7 @@ module.exports = async(sequelize) => {
     }, {
 
         modelName: 'nominal',
-        tableName: 'Nominal',
+        tableName: 'nominal',
         timestamps: true,
         paranoid: true,
         createdAt: 'created',

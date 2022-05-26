@@ -1,10 +1,11 @@
 const { Model, DataTypes } = require('sequelize');
 
-class Partner extends Model {
-
-}
 
 module.exports = async(sequelize) => {
+    class Partner extends Model {
+
+    }
+
     return Partner.init({
         id: {
             type: DataTypes.INTEGER,
@@ -21,10 +22,6 @@ module.exports = async(sequelize) => {
             validate: {
                 notEmpty: {
                     msg: 'Необходимо указать название партнера'
-                },
-                is: {
-                    args: [/[А-я\d ()\/,]{7,70}/g],
-                    msg: 'Имя Партнера может иметь от 7 до 70 букв кирилицы, скобки, слэш, цифры и запятую'
                 }
             }
         },
@@ -45,7 +42,7 @@ module.exports = async(sequelize) => {
         }
     }, {
         modelName: 'partner',
-        tableName: 'Partner',
+        tableName: 'partner',
         timestamps: true,
         paranoid: true,
         createdAt: 'created',

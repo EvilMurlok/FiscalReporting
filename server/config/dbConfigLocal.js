@@ -4,14 +4,16 @@ const config = {
         user: 'klim',
         password: 'Limelime#100',
         dialect: 'postgres',
-        host: 'localhost'
+        host: 'localhost',
+        port: 5432,
     },
     test: {
         database: 'loto_sport_test',
         user: 'klim',
         password: 'Limelime#100',
         dialect: 'postgres',
-        host: 'localhost'
+        host: 'localhost',
+        port: 5432,
     }
 }
 

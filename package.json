@@ -4,7 +4,9 @@
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "migrate": "node server/bin/migrate.js",
+    "basic_insertion": "node server/bin/basicInsertion.js"
   },
   "keywords": [
     "node",

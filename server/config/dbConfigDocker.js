@@ -1,11 +1,11 @@
 const config = {
     development: {
-        HOST: "postgres",
-        USER: "postgres",
-        PASSWORD: "qwerty123",
-        DB: "FiscalReporting",
+        host: "postgres",
+        user: "postgres",
+        password: "qwerty123",
+        database: "FiscalReporting",
         dialect: "postgres",
-        PORT: 5433,
+        port: 5433,
     }
 }
 

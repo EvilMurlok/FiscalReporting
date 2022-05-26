@@ -1,20 +1,17 @@
 const { Model, DataTypes } = require('sequelize');
 
-class StatByDay extends Model {
-
-}
 
 module.exports = async(sequelize) => {
+    class StatByDay extends Model {
+
+    }
+
     return StatByDay.init({
         id: {
             type: DataTypes.INTEGER,
             allowNull: false,
             primaryKey: true,
             autoIncrement: true
-        },
-        date: {
-            type: DataTypes.DATEONLY,
-            allowNull: false
         },
         amountAtStart: {
             type: DataTypes.INTEGER,
@@ -54,7 +51,7 @@ module.exports = async(sequelize) => {
         }
     }, {
         modelName: 'statByDay',
-        tableName: 'StatByDay',
+        tableName: 'stat_by_day',
         timestamps: true,
         paranoid: true,
         createdAt: 'created',

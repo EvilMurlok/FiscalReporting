@@ -72,47 +72,18 @@ module.exports = async (sequelize) => {
             }
         },
         role: {
-            type: DataTypes.SMALLINT,
+            type: DataTypes.ENUM('employee', 'specialist', 'admin', 'root'),
             allowNull: false,
             validate: {
-                isIn: {
-                    args: [[0, 1, 2, 3]],
-                    msg: 'Неверное значение кода роли'
-                },
                 notEmpty: {
                     msg: 'Необходимо указать роль пользователя'
-                }
-            },
-            get() {
-                if (this.getDataValue('role') === 0) {
-                    return 'employee';
-                }
-                if (this.getDataValue('role') === 1) {
-                    return 'specialist';
-                }
-                if (this.getDataValue('role') === 2) {
-                    return 'admin';
-                }
-                return 'root';
-            },
-            set(value) {
-                if (value === 'employee') {
-                    this.setDataValue('role', 0);
-                } else if (value === 'specialist') {
-                    this.setDataValue('role', 1);
-                } else if (value === 'admin') {
-                    this.setDataValue('role', 2);
-                } else if (value === 'root') {
-                    this.setDataValue('role', 3);
-                } else {
-                    throw new Error('Неверное значение для роли');
                 }
             }
         },
         briefInfo: {
             type: DataTypes.VIRTUAL,
             get() {
-                return `${this.getDataValue('id')} ${this.getDataValue('username')} ${this.role}`
+                return `${this.getDataValue('id')} ${this.getDataValue('username')} ${this.getDataValue('role')}`
             }
         }
     }, {
@@ -129,7 +100,7 @@ module.exports = async (sequelize) => {
             }
         },
         modelName: 'user',
-        tableName: 'User',
+        tableName: 'user',
         timestamps: true,
         paranoid: true,
         createdAt: 'created',

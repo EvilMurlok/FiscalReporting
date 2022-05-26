@@ -1,11 +1,12 @@
-const { Model, DataTypes } = require('sequelize');
+const {Model, DataTypes} = require('sequelize');
 
-class HardDay extends Model {
 
-}
+module.exports = async (sequelize) => {
+    class Day extends Model {
 
-module.exports = async(sequelize) => {
-    return HardDay.init({
+    }
+
+    return Day.init({
         id: {
             type: DataTypes.INTEGER,
             allowNull: false,
@@ -16,6 +17,10 @@ module.exports = async(sequelize) => {
             type: DataTypes.DATEONLY,
             allowNull: false
         },
+        coefficient: {
+            type: DataTypes.FLOAT,
+            allowNull: false
+        },
         briefInfo: {
             type: DataTypes.VIRTUAL,
             get() {
@@ -23,13 +28,10 @@ module.exports = async(sequelize) => {
             }
         }
     }, {
-        modelName: 'hardDay',
-        tableName: 'HardDay',
+        sequelize,
+        modelName: 'day',
+        tableName: 'day',
         timestamps: true,
-        paranoid: true,
-        createdAt: 'created',
-        updatedAt: 'updated',
-        deletedAt: 'deleted',
-        sequelize: sequelize,
+        paranoid: true
     });
 }

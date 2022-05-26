@@ -1,10 +1,11 @@
 const { Model, DataTypes } = require('sequelize');
 
-class Parcel extends Model {
-
-}
 
 module.exports = async(sequelize) => {
+    class Parcel extends Model {
+
+    }
+
     return Parcel.init({
         id: {
             type: DataTypes.INTEGER,
@@ -30,7 +31,7 @@ module.exports = async(sequelize) => {
         }
     }, {
         modelName: 'parcel',
-        tableName: 'Parcel',
+        tableName: 'parcel',
         timestamps: true,
         paranoid: true,
         createdAt: 'created',

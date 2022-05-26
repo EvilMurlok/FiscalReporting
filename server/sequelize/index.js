@@ -1,4 +1,4 @@
-const hardDay = require('./hardDay/model');
+const day = require('./day/model');
 const lottery = require('./lottery/model');
 const lotteryNominal = require('./lotteryNominal/model');
 const nominal = require('./nominal/model');
@@ -12,7 +12,7 @@ const associations = require('./associations');
 
 const initModels = async(sequelize) => {
     let models = [
-        hardDay,
+        day,
         lottery,
         lotteryNominal,
         nominal,
