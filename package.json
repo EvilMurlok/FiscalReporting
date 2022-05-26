@@ -1,0 +1,29 @@
+{
+  "name": "sport_loto",
+  "version": "1.0.0",
+  "description": "An admin panel for Tajikistan digital lottery",
+  "repository": {
+    "url": "INPUT GITLAB REPO URL HERE"
+  },
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "node index.js",
+    "migrate": "node server/bin/migrate.js",
+    "basic insertion": "node server/bin/basicInsertion.js"
+  },
+  "dependencies": {
+    "bcrypt": "5.0.1",
+    "body-parser": "1.19.2",
+    "encoding": "0.1.13",
+    "express": "4.17.3",
+    "express-flash": "0.0.2",
+    "express-session": "1.17.2",
+    "morgan": "1.10.0",
+    "passport": "0.5.2",
+    "passport-local": "1.0.0",
+    "pg": "8.7.3",
+    "pg-native": "3.0.0",
+    "prompt-sync": "^4.2.0",
+    "sequelize": "6.16.2"
+  }
+}
