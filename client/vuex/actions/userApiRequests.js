@@ -9,6 +9,7 @@ export default {
                     commit("SET_USER", {id: 0, username: "", role: "", created: ""});
                     throw ({type: res.data.status, messages: res.data.messages});
                 } else {
+                    console.log(res.data.user)
                     commit("SET_USER", res.data.user);
                     return res;
                 }

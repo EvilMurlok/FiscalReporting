@@ -56,7 +56,7 @@
                             size="sm"
                             :disabled="validateData.isRightRange === 'border-warning'"
                   >
-                    <i class="fa fa-info-circle m-1"></i> Применить
+                    <i class="si si-plus m-1"></i> Применить
                   </b-button>
                 </div>
               </base-block>
@@ -71,6 +71,9 @@
 
 <script>
 import BaseMessage from "@/layouts/partials/BaseMessage";
+// import momentTz from "moment-timezone";
+import moment from "moment";
+import breakAuth from "@/utils/authorization";
 
 export default {
   name: "v-settings-rq",
@@ -84,10 +87,9 @@ export default {
       messages_data: {type: "warning", messages: []},
       settings: {
         coefficientKq: "",
-        updateTime: "",
       },
       validateData: {
-        rightNumber: new RegExp('^[0-9.,]+$'),
+        rightNumber: new RegExp(/^\d*([.,]\d+)?$/),
         isRightRange: "border-right",
         isRightTime: 2
       }
@@ -98,11 +100,9 @@ export default {
     'settings.coefficientKq'(coefficientKq) {
       if (coefficientKq) {
         if (this.validateData.rightNumber.test(coefficientKq)) {
-          coefficientKq = coefficientKq.replace(",", ".");
-          coefficientKq = parseFloat(coefficientKq);
-          if (coefficientKq < 0 || coefficientKq > 1) {
+          if (parseFloat(coefficientKq) < 0 || parseFloat(coefficientKq) > 1) {
             this.validateData.isRightRange = "border-warning";
-          } else if (coefficientKq <= 1 && coefficientKq >= 0) {
+          } else if (parseFloat(coefficientKq) <= 1 && parseFloat(coefficientKq) >= 0) {
             this.validateData.isRightRange = "border-success";
           }
         } else {
@@ -114,13 +114,39 @@ export default {
     },
   },
 
-  created() {
-
-  },
-
   methods: {
     setUpSettings() {
-      console.log("QWE");
+      if (this.messages_data.messages.length !== 0) {
+        this.messages_data = {type: "warning", messages: []};
+      }
+      const messages = [];
+      this.settings.coefficientKq = parseFloat(String(this.settings.coefficientKq).replace(",", "."));
+      if (!this.settings.coefficientKq && this.settings.coefficientKq !== 0) {
+        messages.push({
+          text: "Требуется задать коэффициент Kq!"
+        });
+      }
+      if (this.settings.coefficientKq < 0 || this.settings.coefficientKq > 1) {
+        messages.push({
+          text: "Вводимый коэффициент должен быть в пределах [0; 1]!"
+        });
+      }
+      if (messages.length > 0) {
+        this.messages_data = {type: "warning", messages: messages};
+      }
+      else {
+        this.$http
+            .post("/coefficient/change-kq/", {newKq: this.settings.coefficientKq})
+            .then(res => {
+              if (res.data.isLoggedIn === false) {
+                breakAuth.breakAuth(res);
+              } else {
+                this.messages_data = {type: res.data.status, messages: res.data.messages};
+              }
+            })
+            .catch(err => console.error(err));
+        console.log(moment().subtract(1, "day").format());
+      }
     }
   }
 }

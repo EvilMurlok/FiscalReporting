@@ -1,72 +1,97 @@
 const config = require('../../config/dbConfigLocal');
+const moment = require("moment");
 const dbConnection = require('../../sequelize/dbConnection').getInstance({
     config: config,
-    mode: 'development'});
+    mode: 'development'
+});
 
 
 /*
 * На вход подается json следующего вида:
 * {
-*   "pack": {
-*     "lotteryId": какой-то айдишник у лотереи,
-*     "nominals": [
-*       {
-*         "value": значение номинала,
-*         "currentAmount": текущий остаток номинала,
-*         (мб нахуй удалить, он же и так хранится на серваке в LotteryNominals)
-*         "broughtCirculation": внесенное количество номинала (название надо поменять имхо)
-*       },
-*     "date": дата занесения
-*     (по-моему ее тоже лучше передавать, вдруг у нас запрос будет долго обрабатываться)
-*       ...
-*     ]
-*   }
+*   "lotteryId": какой-то айдишник у лотереи,
+*   "date": дата занесения
+*   "nominals": [
+*     {
+*       "id": id номинала
+*       "broughtCirculation": внесенное количество номинала (название надо поменять имхо)
+*     },
+*     ...
+*   ]
 * }
+
 * Таким образом на входе информация о Parcel'ах, поэтому мы должны
 * 1) создать Pack со статусом Актуален
 * 2) создать и присоединить к нему Parcel'ы для пополненных номиналов
 * 3) изменить amount в LotteryNominals, прибавив к нему broughtCirculation
 *
-* ВСЁ В ТРАНЗАКЦИИ БЛЕАДЬ!!!!
+*
 *
 * */
 const makePack = async (req, res) => {
-    let packInfo = req.body;
+    const {packInfo} = req.body;
     const t = await dbConnection.sequelize.transaction();
     try {
+        moment.locale();
+        console.log(packInfo);
         // Создали пак
         // Засунуть в метод CreateWithParcels
-        const createdPack = await dbConnection.models.pack.create({
-            status: 'relevant',
-            date: packInfo.pack.date
-        }, {transaction: t});
+        const createdPack = await dbConnection.models.pack.createWithParcels({
+            user: req.user,
+            packInfo: packInfo,
+            date: packInfo.date,
+            transaction: t
+        });
 
-
-
-        let parcelsInfo = [];
-        for (let nominal of packInfo.pack.nominals) {
-            parcelsInfo.push({amount: nominal.broughtCirculation})
-        }
-
-
+        await t.commit();
         res.send({
             status: 'success',
-            user: createdUser.dataValues,
+            pack: createdPack.dataValues,
             messages: [{
-                text: `Пользователь ${createdUser.username} успешно зарегистрирован`
+                text: `Тираж успешно выпущен`
+            }]
+        });
+    } catch(e) {
+        console.log(e);
+        let messages = '';
+        if (e.errors) {
+            messages = e.errors.map(msg => {
+                return {text: msg.message};
+            })
+        } else {
+            messages = e.messages
+        }
+        await t.rollback();
+        res.send({
+            status: 'warning',
+            message: e.message,
+            messages: messages
+        });
+    }
+}
+
+const getHistory = async (req, res) => {
+    let {date} = req.query;
+    try {
+        const history = await dbConnection.models.pack.getHistory({date: date});
+        res.send({
+            status: 'success',
+            history: history,
+            messages: [{
+                text: `История тиражей успешно получена`
             }]
         });
     } catch(e) {
         console.log(e);
         res.send({
             status: 'warning',
-            messages: e.errors.map(msg => {
-                return {text: msg.message};
-            })
+            message: e.message,
+            messages: e.messages
         });
     }
 }
 
 module.exports = {
-    makePack
+    makePack,
+    getHistory
 }

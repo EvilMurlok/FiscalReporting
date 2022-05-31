@@ -3,7 +3,7 @@ import router from "@/router/router";
 
 const breakAuth = async (res) => {
     const username = store.getters.USER.username;
-    await store.dispatch("SET_USER", {username: "", email: "", phone: ""});
+    await store.dispatch("SET_USER", {id: 0, username: "", role: ""});
     router.push({
         name: "login",
         params: {

@@ -45,8 +45,8 @@
                   </b-button>
                 </div>
                 <b-form-checkbox-group
-                    v-model="checkBoxesData.availableClubsIds"
-                    id="availableClubsIds"
+                    v-model="checkBoxesData.availablePartnersIds"
+                    id="availablePartnersIds"
                     stacked
                 >
                   <b-row class="mb-3">
@@ -59,23 +59,23 @@
                   <b-row>
                     <b-col sm="1"></b-col>
                     <b-col sm="5">
-                      <b-form-checkbox v-for="club in availableClubs.slice(0, halfAvailableClubsLength)"
+                      <b-form-checkbox v-for="club in availablePartners.slice(0, halfAvailablePartnersLength)"
                                        :key="club.id"
                                        :value="club.id"
                                        class="mb-2"
                       >
-                        <b>{{ club.clubName }}</b>
+                        <b>{{ club.name }}</b>
                       </b-form-checkbox>
                     </b-col>
                     <b-col sm="1"></b-col>
                     <b-col sm="5">
-                      <b-form-checkbox v-for="club in availableClubs.slice(halfAvailableClubsLength)"
+                      <b-form-checkbox v-for="club in availablePartners.slice(halfAvailablePartnersLength)"
                                        :key="club.id"
                                        :value="club.id"
                                        class="mb-2"
 
                       >
-                        <b>{{ club.clubName }}</b>
+                        <b>{{ club.name }}</b>
                       </b-form-checkbox>
                     </b-col>
                   </b-row>
@@ -109,8 +109,8 @@
                   </b-button>
                 </div>
                 <b-form-checkbox-group
-                    v-model="checkBoxesData.disabledClubsIds"
-                    id="disabledClubsIds"
+                    v-model="checkBoxesData.disabledPartnersIds"
+                    id="disabledPartnersIds"
                     stacked
                 >
                   <b-row class="mb-3">
@@ -123,23 +123,23 @@
                   <b-row>
                     <b-col sm="1"></b-col>
                     <b-col sm="5">
-                      <b-form-checkbox v-for="club in disabledClubs.slice(0, halfDisableClubsLength)"
+                      <b-form-checkbox v-for="club in disabledPartners.slice(0, halfDisablePartnersLength)"
                                        :key="club.id"
                                        :value="club.id"
                                        class="mb-2"
                       >
-                        <span class="text-muted">{{ club.clubName }}</span>
+                        <span class="text-muted">{{ club.name }} (до {{club.closedAt}})</span>
                       </b-form-checkbox>
                     </b-col>
                     <b-col sm="1"></b-col>
                     <b-col sm="5">
-                      <b-form-checkbox v-for="club in disabledClubs.slice(halfDisableClubsLength)"
+                      <b-form-checkbox v-for="club in disabledPartners.slice(halfDisablePartnersLength)"
                                        :key="club.id"
                                        :value="club.id"
                                        class="mb-2"
 
                       >
-                        <span class="text-muted">{{ club.clubName }}</span>
+                        <span class="text-muted">{{ club.name }} (до {{club.closedAt}})</span>
                       </b-form-checkbox>
                     </b-col>
                   </b-row>
@@ -364,12 +364,12 @@
             </tbody>
           </table>
         </div>
-        <b-button variant="alt-info"
+        <b-button type="submit"
+                  variant="alt-success"
                   size="sm"
                   class="mt-3"
-                  @click="createGlobalReport"
         >
-          <i class="far fa-file opacity-50 mr-1"></i>Выгрузить в Эксель
+          <i class="far fa-file-excel m-1 mr-2"></i>Выгрузить в Excel
         </b-button>
       </base-block>
     </div>
@@ -379,6 +379,8 @@
 <script>
 import BaseMessage from "@/layouts/partials/BaseMessage";
 import FileSaver from "file-saver";
+import breakAuth from "@/utils/authorization";
+import moment from "moment";
 
 export default {
   name: "v-fiscal-report",
@@ -388,19 +390,16 @@ export default {
   },
 
   computed: {
-    halfAvailableClubsLength: function () {
-      return (this.availableClubs.length % 2) ? ~~(this.availableClubs.length / 2) + 1 : ~~(this.availableClubs.length / 2);
+    halfAvailablePartnersLength: function () {
+      return (this.availablePartners.length % 2) ? ~~(this.availablePartners.length / 2) + 1 : ~~(this.availablePartners.length / 2);
     },
 
-    halfDisableClubsLength: function () {
-      return (this.disabledClubs.length % 2) ? ~~(this.disabledClubs.length / 2) + 1 : ~~(this.disabledClubs.length / 2);
+    halfDisablePartnersLength: function () {
+      return (this.disabledPartners.length % 2) ? ~~(this.disabledPartners.length / 2) + 1 : ~~(this.disabledPartners.length / 2);
     },
 
     maxAvailableDate: function () {
-      const currentTime = new Date().setHours(new Date().getHours() + 3);
-      const maxDate = new Date(new Date(new Date(currentTime).setHours(2)).setMinutes(59)).toISOString().slice(0, 16);
-      console.log(maxDate);
-      return maxDate;
+      return moment(`${moment().subtract(1, "day").format().slice(0, 10)} 23:59`).format().slice(0, 16);
     }
   },
 
@@ -409,8 +408,8 @@ export default {
       messages_data: {type: "warning", messages: []},
 
       checkBoxesData: {
-        availableClubsIds: [],
-        disabledClubsIds: [],
+        availablePartnersIds: [],
+        disabledPartnersIds: [],
         isSelectedAvailableAll: false,
         isSelectedDisabledAll: false,
       },
@@ -426,32 +425,9 @@ export default {
         }
       },
 
-      availableClubs: [
-        {clubName: "ДЖ.Расулов, Пролетар 2 (Согд)", id: 1},
-        {clubName: "Чавонон/Аэропорт (Душанбе)", id: 2},
-        {clubName: "Карабоев/Ганджина (Душанбе)", id: 3},
-        {clubName: "Худжанд, 34мкр (Согд)", id: 4},
-        {clubName: "Айни 269/9км (Душанбе)", id: 5},
-        {clubName: "Спитамен 1, Нау 1 (Согд)", id: 6},
-        {clubName: "Спитамен 2, Нау 2 (Согд)", id: 7},
-        {clubName: "Зафарабад (Согд)", id: 8},
-        {clubName: "Куляб 1 (Хатлон)", id: 9},
-        {clubName: "Гулакандоз, Пролетар 1 (Согд)", id: 10},
-        {clubName: "Борбад (Хатлон)", id: 11},
-        {clubName: "Дусти (Душанбе)", id: 12},
-      ],
+      availablePartners: [],
 
-      disabledClubs: [
-        {clubName: "Лохути (Душанбе) (до 09.11.2021)", id: 13},
-        {clubName: "Турсунзаде, Сомони (Душанбе) (до 21.04.2022)", id: 14},
-        {clubName: "Ура-Тюбе 1 (Согд) (до 30.11.2021)", id: 15},
-        {clubName: "Сомониён, Рудаки (Душанбе) (до 17.10.2021)", id: 16},
-        {clubName: "Корвон (Душанбе) (до 21.04.2022)", id: 17},
-        {clubName: "Гафурова (Душанбе) (отключен)", id: 18},
-        {clubName: "Бустон (Согд) (до 07.02.2022)", id: 19},
-        {clubName: "Курган-Тюбе, Май (Халтон) (до 30.11.2021)", id: 20},
-        {clubName: "Шахристан (Согд) (до 15.10.2021)", id: 21},
-      ],
+      disabledPartners: [],
 
       loading: {
         isLoading: false,
@@ -530,32 +506,39 @@ export default {
   },
 
   created() {
-    const currentTime = new Date(new Date().setHours(new Date().getHours() + 3));
-    const yesterday = new Date(new Date(currentTime).setDate(currentTime.getDate() - 1));
-    this.startDateOfReport = new Date(new Date(yesterday.setHours(3)).setMinutes(0)).toISOString().slice(0, 16);
-    this.endDateOfReport = new Date(new Date(currentTime.setHours(2)).setMinutes(59)).toISOString().slice(0, 16);
-
+    this.startDateOfReport = moment(`${moment().subtract(1, "day").format().slice(0, 10)} 0:00`).format().slice(0, 16);
+    this.endDateOfReport = moment(`${moment().subtract(1, "day").format().slice(0, 10)} 23:59`).format().slice(0, 16);
+    this.$http
+        .get("/partner/get-all-partners/")
+        .then(res => {
+          if (res.data.isLoggedIn === false) {
+            breakAuth.breakAuth(res);
+          } else {
+            [this.availablePartners, this.disabledPartners] = [res.data.availablePartners, res.data.disabledPartners];
+          }
+        })
+        .catch(err => console.error(err));
   },
 
   methods: {
     selectAll({type = "available"}) {
       if (type === "available") {
-        this.checkBoxesData.availableClubsIds = [];
-        this.checkBoxesData.availableClubsIds = this.availableClubs.map(club => club.id);
+        this.checkBoxesData.availablePartnersIds = [];
+        this.checkBoxesData.availablePartnersIds = this.availablePartners.map(club => club.id);
         this.checkBoxesData.isSelectedAvailableAll = true;
       } else {
-        this.checkBoxesData.disabledClubsIds = [];
-        this.checkBoxesData.disabledClubsIds = this.disabledClubs.map(club => club.id);
+        this.checkBoxesData.disabledPartnersIds = [];
+        this.checkBoxesData.disabledPartnersIds = this.disabledPartners.map(club => club.id);
         this.checkBoxesData.isSelectedDisabledAll = true;
       }
     },
 
     deselectAll({type = "available"}) {
       if (type === "available") {
-        this.checkBoxesData.availableClubsIds = [];
+        this.checkBoxesData.availablePartnersIds = [];
         this.checkBoxesData.isSelectedAvailableAll = false;
       } else {
-        this.checkBoxesData.disabledClubsIds = [];
+        this.checkBoxesData.disabledPartnersIds = [];
         this.checkBoxesData.isSelectedDisabledAll = false;
       }
     },
@@ -575,8 +558,8 @@ export default {
           text: "Начальная дата не может быть позже, чем конечная!"
         });
       }
-      if (!this.checkBoxesData.availableClubsIds.length &&
-          !this.checkBoxesData.disabledClubsIds.length) {
+      if (!this.checkBoxesData.availablePartnersIds.length &&
+          !this.checkBoxesData.disabledPartnersIds.length) {
         this.messages_data.messages.push({
           text: "Выберите хотя бы один клуб!"
         });

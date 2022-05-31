@@ -5,10 +5,19 @@ const morgan = require("morgan");
 const session = require("express-session");
 const flash = require("express-flash");
 const passport = require("passport");
+const schedule = require("node-schedule");
 
 // local routes requirements
 const excelReportsRouter = require("./excelReport/router");
 const authRouter = require("./authorization/router");
+const partnerRouter = require("./partner/router");
+const coefficientRouter = require("./coefficient/router");
+const packRouter = require("./pack/router");
+const lotteryRouter = require("./lottery/router");
+const statsRouter = require('./statByDay/router');
+
+// different utils
+const coefficientUtils = require("../express/coefficient/utils");
 
 // local auth requirements
 const {SESSION_SECRET} = require("../config/sessionConfig");
@@ -47,7 +56,14 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(flash());
 
-app.use("/excel-reports/", excelReportsRouter);
+schedule.scheduleJob("0 0 * * *", coefficientUtils.changeKqDaily);
+
 app.use("/auth/", authRouter);
+app.use("/excel-reports/", excelReportsRouter);
+app.use("/partner/", partnerRouter);
+app.use("/coefficient/", coefficientRouter);
+app.use("/pack/", packRouter);
+app.use("/lottery/", lotteryRouter);
+app.use('/stats/', statsRouter);
 
 module.exports = app;

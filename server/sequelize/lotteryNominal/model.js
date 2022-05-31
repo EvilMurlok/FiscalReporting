@@ -1,7 +1,7 @@
-const { Model, DataTypes } = require('sequelize');
+const {Model, DataTypes} = require('sequelize');
 const {LotteryNominalCredentialsError} = require("./errors");
 
-module.exports = async(sequelize) => {
+module.exports = async (sequelize) => {
     class LotteryNominal extends Model {
         /**
          * Найти номиналы лотерей.
@@ -13,12 +13,12 @@ module.exports = async(sequelize) => {
          * @param nominalValues
          * @returns {Promise<LotteryNominal[]>}
          */
-        static findByLotteryAndNominal = async({
-                                                   lotteryIds = [],
-                                                   lotteryNames = [],
-                                                   nominalIds = [],
-                                                   nominalValues = []
-                                               }) => {
+        static findByLotteriesAndNominals = async({
+                                                      lotteryIds = [],
+                                                      lotteryNames = [],
+                                                      nominalIds = [],
+                                                      nominalValues = []
+                                                  }) => {
             if (lotteryIds.length === 0 && lotteryNames.length === 0) {
                 throw new LotteryNominalCredentialsError(
                     'Неверные данные номинала лотереи',
@@ -55,8 +55,6 @@ module.exports = async(sequelize) => {
                     'name': lotteryNames
                 }
             );
-
-
             let includeParams = Array.of(
                 {
                     'model': sequelize.models.nominal,
@@ -69,10 +67,66 @@ module.exports = async(sequelize) => {
                     'where': lotteryWhereParams
                 }
             );
-            console.log(includeParams);
             return await this.findAll({
                 include: includeParams,
             })
+        }
+
+        /**
+         * Обновить баланс у номиналов конкретной лотереи на внесенные значения
+         * @param lotteryId идентификатор лотореи
+         * @param nominalsInfo массив объектов вида: {
+         * *         "id": id номинала,
+         * *         "broughtCirculation": внесенное количество номинала
+         * *       }
+         * @param transaction
+         * @returns {Promise<LotteryNominal[]>}
+         */
+        static updateAmountByLotteryAndNominals = async ({
+                                                             lotteryId = 0,
+                                                             nominalsInfo = null,
+                                                             transaction = null
+                                                         }) => {
+            if (lotteryId <= 0) {
+                throw new LotteryNominalCredentialsError(
+                    'Неверные данные номинала лотереи',
+                    [{
+                        text: 'Для обновления количества остатков по номиналам лотереи необходимо указать ' +
+                            'идентификатор лотереи'
+                    }]
+                );
+            }
+            if (!nominalsInfo) {
+                throw new LotteryNominalCredentialsError(
+                    'Неверные данные номинала лотереи',
+                    [{
+                        text: 'Для обновления количества остатков по номиналам лотереи необходимо указать ' +
+                            'информацию по поступлениям по номиналам'
+                    }]
+                );
+            }
+            nominalsInfo.forEach(el => {
+                if (el.broughtCirculation < 0) {
+                    throw new LotteryNominalCredentialsError(
+                        'Неверные данные номинала лотереи',
+                        [{
+                            text: 'Количество новых билетов в тираже не может быть отрицательным'
+                        }]
+                    );
+                }
+            });
+            const lotteryNominals = await sequelize.models.lotteryNominal.findByLotteriesAndNominals({
+                lotteryIds: [lotteryId],
+                nominalIds: nominalsInfo.map(el => el.id)
+            });
+            let index = null;
+            for (let ln of lotteryNominals) {
+                index = nominalsInfo.findIndex((el) => el.id === ln.nominalId);
+                ln.amount += nominalsInfo[index].broughtCirculation;
+                // console.log('found index: ', index, 'toAdd', nominalsInfo[index].broughtCirculation, 'updated', ln.amount);
+                await ln.save({transaction: transaction});
+            }
+            return lotteryNominals;
         }
     }
 
@@ -88,7 +142,7 @@ module.exports = async(sequelize) => {
             allowNull: false,
             validate: {
                 min: {
-                    args: 0,
+                    args: [0],
                     msg: 'Остаток по лотерейным квитанциям не может быть отрицательным'
                 }
             }
@@ -100,13 +154,14 @@ module.exports = async(sequelize) => {
             }
         }
     }, {
+        sequelize,
         modelName: 'lotteryNominal',
         tableName: 'lottery_nominal',
         timestamps: true,
-        paranoid: true,
         createdAt: 'created',
         updatedAt: 'updated',
         deletedAt: 'deleted',
-        sequelize: sequelize,
+        paranoid: true
     });
+
 }

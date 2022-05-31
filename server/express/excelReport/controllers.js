@@ -1,4 +1,10 @@
 const excel = require("exceljs");
+const config = require('../../config/dbConfigLocal');
+const moment = require("moment");
+const dbConnection = require('../../sequelize/dbConnection').getInstance({
+    config: config,
+    mode: 'development'
+});
 
 const {
     LETTERS, FILL, BORDER,
@@ -6,23 +12,25 @@ const {
 } = require("./utils");
 
 const createRemaindersReport = async (req, res) => {
-    const currentDate = new Date(new Date().setHours(new Date().getHours() + 3)).toISOString().slice(0, 10);
+    const currentDate = req.query.date;
     const arrDate = currentDate.split("-").reverse();
     const actualDateString = `Данные актуальны на ${arrDate[0]}.${arrDate[1]}.${arrDate[2]} 23:59:59`;
-
-    const remaindersData = [
-        {"lottery": "Гамбусаки Хушхол", "remainders": [16010, 7638, 4432, 4441, 5097, 2843, 1141, 574, 9, 1]},
-        {"lottery": "Дурдонаи Гаронбахо", "remainders": [16108, 7623, 4287, 4403, 5042, 2751, 983, 383, 222, 1]},
-        {"lottery": "Киссахои Помир", "remainders": [632, 2329, 1423, 1452, 1627, 980, 416, 185, 444, 1]},
-        {"lottery": "Хирадманди Хушхол", "remainders": [9884, 4701, 2632, 2704, 3115, 1677, 564, 210, 111, 1]},
-        {"lottery": "Хоча Насриддин", "remainders": [38364, 17808, 9746, 10032, 11610, 6062, 1948, 698, 432, 1]},
-    ];
-    const availableDenominations = [0.1, 0.2, 0.3, 0.4, 0.5, 1, 2, 3, 4, 6];
+    let remaindersData = "";
+    try {
+        remaindersData = await dbConnection.models.statByDay.getBalanceReport({date: currentDate});
+    } catch (e) {
+        res.send({
+            status: "warning",
+            messages: e.messages
+        });
+        return;
+    }
+    const availableDenominations = remaindersData[0].remainders.map(remainder => parseFloat(remainder.value));
     const lotteries = [];
     for (let lottery of remaindersData) {
         const lotteryData = {lottery: lottery.lottery};
         for (let denominationIndex in availableDenominations) {
-            lotteryData[String(availableDenominations[denominationIndex])] = lottery["remainders"][denominationIndex];
+            lotteryData[String(availableDenominations[denominationIndex])] = parseInt(lottery["remainders"][denominationIndex].amount);
         }
         lotteries.push(lotteryData);
     }
@@ -262,57 +270,25 @@ const createGlobalReport = async (req, res) => {
 }
 
 const createHistoryReport = async (req, res) => {
-    const availableDenominations = [0.1, 0.2, 0.3, 0.4, 0.5, 1, 2, 3, 4, 5, 10, 15, 20];
-    const reportData = [
-        {
-            "lottery": "Гамбусаки Хушхол",
-            "denominations": [16010, 7638, 4432, 4441, 5097, 2843, 1141, 574, 9, 7, 2, 1, 1],
-        },
-        {
-            "lottery": "Дурдонаи Гаронбахо",
-            "denominations": [16108, 7623, 4287, 4403, 5042, 2751, 983, 383, 222, 140, 12, 2, 1],
-        },
-        {
-            "lottery": "Киссахои Помир",
-            "denominations": [4632, 2329, 1423, 1452, 1627, 980, 416, 185, 444, 234, 43, 3, 1],
-        },
-        {
-            "lottery": "Мевахо",
-            "denominations": [38364, 17808, 9746, 10032, 11610, 6062, 1948, 698, 432, 521, 87, 4, 1],
-        },
-        {
-            "lottery": "Рохи Абрешим",
-            "denominations": [43242, 15432, 8864, 10032, 3435, 5232, 1948, 698, 432, 34, 2, 1, 1],
-        },
-        {
-            "lottery": "Хирадманди Хушхол",
-            "denominations": [12343, 9647, 5436, 4441, 5097, 2843, 1141, 574, 376, 125, 45, 7, 1],
-        },
-        {
-            "lottery": "Хоча Насриддин",
-            "denominations": [12525, 9432, 7453, 3264, 6532, 6436, 2321, 235, 124, 53, 54, 34, 1],
-        },
-        {
-            "lottery": "Хоча Насриддин",
-            "denominations": [12525, 9432, 7453, 3264, 6532, 6436, 2321, 235, 124, 53, 54, 34, 1],
-        },
-        {
-            "lottery": "Хоча Насриддин",
-            "denominations": [12525, 9432, 7453, 3264, 6532, 6436, 2321, 235, 124, 53, 54, 34, 1],
-        },
-        {
-            "lottery": "Хоча Насриддин",
-            "denominations": [12525, 9432, 7453, 3264, 6532, 6436, 2321, 235, 124, 53, 54, 34, 1],
-        },
-
-    ];
+    const currentDate = req.query.date;
+    const arrDate = currentDate.split("-").reverse();
+    const actualDateString = `Дата: ${arrDate[0]}.${arrDate[1]}.${arrDate[2]}`;
+    let reportData = "";
+    try {
+        reportData =  await dbConnection.models.pack.getHistory({date: currentDate});
+    } catch (e) {
+        res.send({
+            status: "warning",
+            messages: e.messages
+        });
+        return;
+    }
+    const availableDenominations = reportData[0].composition.map(remainder => parseFloat(remainder.value));
     for (let lottery of reportData) {
-        lottery.totalSumCirculation = lottery.denominations.reduce((sum, elem) => {
-            return sum + elem;
+        lottery.totalSumCirculation = lottery.composition.reduce((sum, elem) => {
+            return sum + elem.amount;
         }, 0);
     }
-
-
 
     const workbook = new excel.Workbook();
     const worksheet = workbook.addWorksheet("historyReport");
@@ -324,10 +300,10 @@ const createHistoryReport = async (req, res) => {
             lottery: lottery.lottery,
             totalSumCirculation: lottery.totalSumCirculation,
         };
-        for (let denominationIndex in lottery.denominations) {
-            lotteryData[String(availableDenominations[denominationIndex])] = lottery.denominations[denominationIndex];
-            amountsOfDenominations[denominationIndex] += lottery["denominations"][denominationIndex];
-            amountsOfDenominations[lottery.denominations.length] += lottery.totalSumCirculation;
+        for (let denominationIndex in lottery.composition) {
+            lotteryData[String(availableDenominations[denominationIndex])] = lottery.composition[denominationIndex].amount;
+            amountsOfDenominations[denominationIndex] += lottery.composition[denominationIndex].amount;
+            amountsOfDenominations[lottery.composition.length] += lottery.totalSumCirculation;
         }
         lotteriesData.push(lotteryData);
     }
@@ -354,7 +330,7 @@ const createHistoryReport = async (req, res) => {
     worksheet.mergeCells("A1:A2");
     worksheet.mergeCells(`B1:${LETTERS[availableDenominations.length]}1`);
     worksheet.mergeCells(`${LETTERS[1 + availableDenominations.length]}1:${LETTERS[1 + availableDenominations.length]}2`);
-    worksheet.getCell("B1").value = "Количество проданных лотерейных квитанций по номиналам";
+    worksheet.getCell("B1").value = "Количество лотерейных квитанций по номиналам";
     for (let denominationIndex in availableDenominations) {
         worksheet.getCell(`${LETTERS[1 + parseInt(denominationIndex)]}2`).value = availableDenominations[denominationIndex];
     }
@@ -380,8 +356,7 @@ const createHistoryReport = async (req, res) => {
     });
 
     const dateStringCell = worksheet.getCell(`A${4 + reportData.length}`);
-    const currentDateArr = new Date(new Date().setHours(new Date().getHours() + 3)).toISOString().slice(0, 10).split("-").reverse();
-    dateStringCell.value = `Дата: ${currentDateArr[0]}.${currentDateArr[1]}.${currentDateArr[2]}`;
+    dateStringCell.value = actualDateString;
     dateStringCell.border = BORDER;
     convertCell(dateStringCell);
 

@@ -43,9 +43,9 @@
                 </b-form-input>
               </div>
               <div class="form-group">
-                <label class="form-check-label mb-2">Время создания</label>
+                <label class="form-check-label mb-2">Ваш аккаунт был создан </label>
                 <h2 class="mb-3">
-                  <b-badge variant="primary">{{ new Date(user.created).toLocaleString() }}</b-badge>
+                  <b-badge variant="primary">{{ userCreatedDate }}</b-badge>
                 </h2>
               </div>
             </base-block>
@@ -58,11 +58,20 @@
 </template>
 
 <script>
+// import moment from "moment";
 import {mapActions} from "vuex";
 import store from "../../../vuex/store";
+import moment from "moment";
 
 export default {
   name: "v-user-info",
+
+  computed: {
+    userCreatedDate: function () {
+      moment.locale("ru");
+      return moment(this.user.created).format("LLLL");
+    }
+  },
 
   created() {
     if (this.$route.params.messages_data !== undefined) {

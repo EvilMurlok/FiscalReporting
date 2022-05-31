@@ -28,8 +28,8 @@
                 <div class="form-group">
                   <label class="form-check-label mb-2">Клуб</label>
                   <b-form-select size="md"
-                                 v-model="inspectedClub"
-                                 :options="availableClubs"
+                                 v-model="inspectedPartner"
+                                 :options="allPartners"
                   >
                   </b-form-select>
                 </div>
@@ -38,7 +38,7 @@
                   <b-form-input id="dateOfInspection"
                                 name="dateOfInspection"
                                 type="date"
-                                :max="new Date(new Date().setHours(new Date().getHours() + 3)).toISOString().slice(0, 10)"
+                                :max="maxDate"
                                 v-model="dateOfInspection"
                   >
                   </b-form-input>
@@ -64,6 +64,8 @@
 
 <script>
 import BaseMessage from "@/layouts/partials/BaseMessage";
+import moment from "moment";
+import breakAuth from "@/utils/authorization";
 
 export default {
   name: "v-fiscal-report-inspections",
@@ -75,16 +77,38 @@ export default {
   data() {
     return {
       messages_data: {type: "warning", messages: []},
-      inspectedClub: "Гафурова (Душанбе) (отключен)",
-      availableClubs: [
-        {text: "Гафурова (Душанбе) (отключен)", value: "Гафурова (Душанбе) (отключен)"},
-        {text: "Лохути (Душанбе) (до 09.11.2021)", value: "Лохути (Душанбе) (до 09.11.2021)"},
-        {text: "01. Карабоев/Ганджина (Душанбе)", value: "01. Карабоев/Ганджина (Душанбе)"},
-        {text: "Сомониён, Рудаки (Душанбе) (до 17.10.2021)", value: "Сомониён, Рудаки (Душанбе) (до 17.10.2021)"},
-        {text: "02. Айни 269/9км (Душанбе)", value: "02. Айни 269/9км (Душанбе)"},
-      ],
-      dateOfInspection: new Date(new Date().setHours(new Date().getHours() + 3)).toISOString().slice(0, 10)
+      inspectedPartner: "",
+      allPartners: [],
+      dateOfInspection: moment().format().slice(0, 10),
+      maxDate: moment().format().slice(0, 10)
     }
+  },
+
+  created() {
+    this.$http
+        .get("/partner/get-all-partners/")
+        .then(res => {
+          if (res.data.isLoggedIn === false) {
+            breakAuth.breakAuth(res);
+          } else {
+            for (let partner of res.data.availablePartners) {
+              this.allPartners.push({
+                id: partner.id,
+                text: partner.name,
+                value: partner.name
+              });
+            }
+            for (let partner of res.data.disabledPartners) {
+              this.allPartners.push({
+                id: partner.id,
+                text: `${partner.name} (до ${partner.closedAt})`,
+                value: `${partner.name} (до ${partner.closedAt})`
+              });
+            }
+            this.inspectedPartner = this.allPartners[0].text;
+          }
+        })
+        .catch(err => console.error(err));
   },
 
   methods: {
@@ -92,13 +116,26 @@ export default {
       if (this.messages_data.messages.length !== 0) {
         this.messages_data = {type: "warning", messages: []};
       }
-      if (this.dateOfInspection > new Date(new Date().setHours(new Date().getHours() + 3)).toISOString().slice(0, 10)) {
+      if (this.dateOfInspection > this.maxDate) {
         this.messages_data.messages.push({
           text: "Можно выбрать дни из прошлого или текущий день!"
         });
       }
       if (!this.messages_data.messages.length) {
-        console.log("QWE");
+        console.log(this.allPartners.filter(partner => partner.text === this.inspectedPartner));
+        this.$http
+            .post("/coefficient/addInspection/", {
+              id: this.allPartners.filter(partner => partner.text === this.inspectedPartner)[0].id,
+              dateOfInspection: this.dateOfInspection
+            })
+            .then(res => {
+              if (res.data.isLoggedIn === false) {
+                breakAuth.breakAuth(res);
+              } else {
+                this.messages_data = {type: res.data.status, messages: res.data.messages};
+              }
+            })
+            .catch(err => console.error(err));
       }
     }
   }

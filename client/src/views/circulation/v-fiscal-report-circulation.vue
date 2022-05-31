@@ -26,10 +26,10 @@
                   :message_data="{type: messages_data.type, item: item}"
               />
               <div class="d-flex justify-content-between">
-                <p>Лотерея</p>
+                <span class="h5">Лотерея</span>
                 <div class="form-group ml-3">
                   <b-form-select size="md"
-                                 v-model="selectedLotteryName"
+                                 v-model="selectedLotteryId"
                                  :options="availableLotteriesNames"
                   ></b-form-select>
                 </div>
@@ -37,6 +37,7 @@
                   <b-button type="submit"
                             variant="alt-info"
                             size="sm"
+                            :disabled="selectedLotteryId === 0"
                   >
                     <i class="fa fa-plus m-1 mr-2"></i>Внести тираж
                   </b-button>
@@ -51,15 +52,15 @@
                                 'width': '25%',
                                 'cursor': 'pointer'
                              }"
-                        @click="sortField({sortedField: 'nominal'})"
+                        @click="sortField({requireSortingField: 'value'})"
                     >
                         <span class="ml-2">
                           Номинал
                           <i class="si si-arrow-up m-2"
-                             v-if="sortData.sortTypeNominal === 'ASC'">
+                             v-if="sortData.sortFields['value'] === 'ASC'">
                           </i>
                           <i class="si si-arrow-down m-2"
-                             v-else-if="sortData.sortTypeNominal === 'DESC'">
+                             v-else-if="sortData.sortFields['value'] === 'DESC'">
                           </i>
                         </span>
                     </th>
@@ -67,15 +68,15 @@
                                 'width': '40%',
                                 'cursor': 'pointer'
                              }"
-                        @click="sortField({sortedField: 'currentAmount'})"
+                        @click="sortField({requireSortingField: 'currentAmount'})"
                     >
                         <span class="ml-2">
                           Текущий остаток
                           <i class="si si-arrow-up m-2"
-                             v-if="sortData.sortTypeCurrentAmount === 'ASC'">
+                             v-if="sortData.sortFields['currentAmount'] === 'ASC'">
                           </i>
                           <i class="si si-arrow-down m-2"
-                             v-else-if="sortData.sortTypeCurrentAmount === 'DESC'">
+                             v-else-if="sortData.sortFields['currentAmount'] === 'DESC'">
                           </i>
                         </span>
                     </th>
@@ -83,20 +84,20 @@
                   </tr>
                   </thead>
                   <tbody>
-                  <tr v-for="lottery in availableLotteries[selectedLotteryName]"
-                      :key="lottery.nominal"
+                  <tr v-for="nominal in nominals"
+                      :key="nominal.id"
                   >
                     <td class="fw-semibold fs-sm">
-                      {{ lottery.nominal }}
+                      {{ nominal.value }}
                     </td>
-                    <td class="fs-sm">{{ lottery.currentAmount }}</td>
+                    <td class="fs-sm">{{ nominal.currentAmount }}</td>
                     <td>
                       <b-form-input type="number"
                                     size="md"
                                     id="broughtCirculation"
                                     name="broughtCirculation"
                                     pattern="^[0-9]+$"
-                                    v-model="lottery.broughtCirculation"
+                                    v-model="nominal.broughtCirculation"
                       >
                       </b-form-input>
                     </td>
@@ -115,6 +116,8 @@
 
 <script>
 import BaseMessage from "@/layouts/partials/BaseMessage";
+import breakAuth from "@/utils/authorization";
+import moment from "moment";
 
 export default {
   name: "v-fiscal-report-circulation",
@@ -130,59 +133,75 @@ export default {
       sortData: {
         sortComparator: {"DESC>": -1, "DESC<": 1, "ASC>": 1, "ASC<": -1},
         sortChangeType: {"DESC": "ASC", "ASC": "DESC", "": "ASC"},
-        sortedField: "nominal",
-        sortTypeNominal: "ASC",
-        sortTypeCurrentAmount: "",
+        sortFields: {
+          "value": "ASC",
+          "currentAmount": "",
+        },
       },
 
-      availableLotteriesNames: [
-        {value: "Дурдонаи Гаронбахо", text: "Дурдонаи Гаронбахо"},
-        {value: "Хирадманди Хушхол", text: "Хирадманди Хушхол"},
-        {value: "Киссахои Помир", text: "Киссахои Помир"},
-        {value: "Хоча Насриддин", text: "Хоча Насриддин"},
-        {value: "Гамбусаки Хушхол", text: "Гамбусаки Хушхол"},
-        {value: "Хоча Насриддин", text: "Хоча Насриддин"},
-        {value: "Миср", text: "Миср"},
-        {value: "Мевахо", text: "Мевахо"},
-        {value: "Киссахо", text: "Киссахо"},
-        {value: "Рохи Абрешим", text: "Рохи Абрешим"},
-      ],
+      availableLotteriesNames: [],
 
-      selectedLotteryName: "Дурдонаи Гаронбахо",
-
-      availableLotteries: {
-        "Дурдонаи Гаронбахо": [
-          {nominal: 0.1, currentAmount: 1400, broughtCirculation: 0},
-          {nominal: 0.2, currentAmount: 1300, broughtCirculation: 0},
-          {nominal: 0.3, currentAmount: 1100, broughtCirculation: 0},
-          {nominal: 0.4, currentAmount: 2400, broughtCirculation: 0},
-          {nominal: 0.5, currentAmount: 300, broughtCirculation: 0},
-        ],
-        "Хирадманди Хушхол": [
-          {nominal: 0.2, currentAmount: 2300, broughtCirculation: 0},
-          {nominal: 0.4, currentAmount: 200, broughtCirculation: 0},
-          {nominal: 0.5, currentAmount: 2100, broughtCirculation: 0},
-          {nominal: 0.6, currentAmount: 600, broughtCirculation: 0},
-        ],
-        "Киссахои Помир": [{nominal: 0.3, currentAmount: 100, broughtCirculation: 0}],
-        "Хоча Насриддин": [{nominal: 0.4, currentAmount: 1900, broughtCirculation: 0}],
-        "Гамбусаки Хушхол": [{nominal: 0.5, currentAmount: 2400, broughtCirculation: 0}],
-        "Миср": [{nominal: 0.6, currentAmount: 4500, broughtCirculation: 0}],
-        "Мевахо": [{nominal: 0.7, currentAmount: 500, broughtCirculation: 0}],
-        "Киссахо": [{nominal: 0.8, currentAmount: 1300, broughtCirculation: 0}],
-        "Рохи Абрешим": [{nominal: 0.9, currentAmount: 400, broughtCirculation: 0}],
-      },
+      selectedLotteryId: 0,
+      nominals: [],
     }
   },
 
   watch: {
-    'selectedLotteryName'() {
-      for (let availableLotteryIndex in this.availableLotteries) {
-        for (let availableLottery of this.availableLotteries[availableLotteryIndex]) {
-          availableLottery.broughtCirculation = 0;
+    'selectedLotteryId'(selectedLotteryId) {
+      console.log(selectedLotteryId);
+      this.$http
+          .get(`/stats/balance/${selectedLotteryId}/`)
+          .then(res => {
+            if (res.data.isLoggedIn === false) {
+              breakAuth.breakAuth(res);
+            } else {
+              this.nominals = [];
+              for (let nominal of res.data.nominals) {
+                nominal.broughtCirculation = 0;
+                nominal.value = Number(nominal.value);
+                this.nominals.push(nominal);
+              }
+              console.log(this.nominals);
+            }
+          })
+          .catch(err => console.error(err));
+
+      // сортировка
+      let [sortedField, sortType] = ["", ""];
+      for (let sortedFieldIndex in this.sortData.sortFields) {
+        if (this.sortData.sortFields[sortedFieldIndex]) {
+          [sortedField, sortType] = [sortedFieldIndex, this.sortData.sortFields[sortedFieldIndex]];
         }
       }
+      this.nominals.sort((lhs, rhs) => {
+        if (lhs[sortedField] > rhs[sortedField]) {
+          return this.sortData.sortComparator[sortType + ">"];
+        }
+        if (lhs[sortedField] < rhs[sortedField]) {
+          return this.sortData.sortComparator[sortType + "<"];
+        }
+        return 0;
+      });
     }
+  },
+
+  created() {
+    this.$http
+        .get("/lottery/get-all-lotteries/")
+        .then(res => {
+          if (res.data.isLoggedIn === false) {
+            breakAuth.breakAuth(res);
+          } else {
+            for (let lottery of res.data.lotteries) {
+              this.availableLotteriesNames.push({
+                text: lottery.name,
+                value: lottery.id
+              });
+            }
+            this.selectedLotteryId = this.availableLotteriesNames[0].value;
+          }
+        })
+        .catch(err => console.error(err))
   },
 
   methods: {
@@ -190,23 +209,33 @@ export default {
       if (this.messages_data.messages.length !== 0) {
         this.messages_data = {type: "warning", messages: []};
       }
-      const lottery = this.availableLotteries[this.selectedLotteryName];
-      let [isSomeNotZero, isSomeNotNumber, rightNumber] = [false, false, /^[0-9]+$/];
-      for (let nominal of lottery) {
-        if (typeof nominal.broughtCirculation === "string" && !rightNumber.test(nominal.broughtCirculation)) {
-          isSomeNotNumber = true;
-        }
 
+      const lottery = {
+        lotteryId: this.selectedLotteryId,
+        date: moment().format("YYYY-MM-DD"),
+        nominals: this.nominals.map(function (nominal) {
+          return {
+            id: nominal.id,
+            broughtCirculation: nominal.broughtCirculation
+          };
+        })
+      };
+      console.log(lottery);
+      let [isSomeNotZero, isSomeNotNumber, rightNumber] = [false, false, /^[0-9]+$/];
+      for (let nominal of lottery.nominals) {
+        if (typeof nominal.broughtCirculation === "string" && !rightNumber.test(String(nominal.broughtCirculation))) {
+          isSomeNotNumber = true;
+          nominal.broughtCirculation = Number(nominal.broughtCirculation);
+        }
         console.log(typeof nominal.broughtCirculation, nominal.broughtCirculation);
-        if (nominal.broughtCirculation !== 0 && nominal.broughtCirculation !== "0") {
+        if (nominal.broughtCirculation !== 0) {
           isSomeNotZero = true;
         }
-
       }
 
       if (!isSomeNotZero) {
         this.messages_data.messages.push({
-          text: `В лоттерее ${this.selectedLotteryName} надо заполнить данные хотя бы об одном номинале!`
+          text: `В лоттерее надо заполнить данные хотя бы об одном номинале!`
         });
       }
       if (isSomeNotNumber) {
@@ -216,32 +245,40 @@ export default {
       }
 
       if (!this.messages_data.messages.length) {
-        console.log("QWE");
+        this.$http
+            .post("/pack/make-pack/", {
+              packInfo: lottery
+            })
+            .then(res => {
+              if (res.data.isLoggedIn === false) {
+                breakAuth.breakAuth(res);
+              } else {
+                this.messages_data = {type: res.data.status, messages: res.data.messages};
+              }
+            })
+            .catch(err => console.error(err));
       }
     },
 
-    sortField({sortedField = "nominal"}) {
+    sortField({requireSortingField = 'value'}) {
       let sortedType = "ASC";
-      this.sortData.sortedField = sortedField;
-      if (sortedField === "nominal") {
-        sortedType = this.sortData.sortTypeNominal = this.sortData.sortChangeType[this.sortData.sortTypeNominal];
-        this.sortData.sortTypeCurrentAmount = "";
-      } else if (sortedField === "currentAmount") {
-        sortedType = this.sortData.sortTypeCurrentAmount = this.sortData.sortChangeType[this.sortData.sortTypeCurrentAmount];
-        this.sortData.sortTypeNominal = "";
+      for (let sortField in this.sortData.sortFields) {
+        if (requireSortingField === sortField) {
+          sortedType = this.sortData.sortFields[sortField] = this.sortData.sortChangeType[this.sortData.sortFields[requireSortingField]]
+        } else {
+          this.sortData.sortFields[sortField] = "";
+        }
       }
-      for (let availableLottery in this.availableLotteries) {
-        this.availableLotteries[availableLottery].sort((lhs, rhs) => {
-          if (lhs[this.sortData.sortedField] > rhs[this.sortData.sortedField]) {
-            return this.sortData.sortComparator[sortedType + ">"];
-          }
-          if (lhs[this.sortData.sortedField] < rhs[this.sortData.sortedField]) {
-            return this.sortData.sortComparator[sortedType + "<"];
-          }
-          return 0;
-        });
-      }
-    },
+      this.nominals.sort((lhs, rhs) => {
+        if (lhs[requireSortingField] > rhs[requireSortingField]) {
+          return this.sortData.sortComparator[sortedType + ">"];
+        }
+        if (lhs[requireSortingField] < rhs[requireSortingField]) {
+          return this.sortData.sortComparator[sortedType + "<"];
+        }
+        return 0;
+      });
+    }
   }
 
 }

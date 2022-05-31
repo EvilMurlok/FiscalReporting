@@ -1,8 +1,8 @@
 module.exports = async(models) => {
-    models.user.releasedPacks = models.user.hasMany(models.pack);
+    models.user.packs = models.user.hasMany(models.pack);
     models.pack.user = models.pack.belongsTo(models.user);
 
-    models.pack.parts = models.pack.hasMany(models.parcel);
+    models.pack.parcels = models.pack.hasMany(models.parcel);
     models.parcel.pack = models.parcel.belongsTo(models.pack);
 
     models.lotteryNominal.parcel = models.lotteryNominal.hasMany(models.parcel);
@@ -13,12 +13,14 @@ module.exports = async(models) => {
 
     models.lottery.lotteryNominal = models.lottery.hasMany(models.lotteryNominal);
     models.lotteryNominal.lottery = models.lotteryNominal.belongsTo(models.lottery);
+    models.lottery.packs = models.lottery.hasMany(models.pack);
+    models.pack.lottery = models.pack.belongsTo(models.lottery);
 
-    models.partner.lotteries = models.partner.belongsToMany(models.lottery, {through: 'PartnerLottery'});
-    models.lottery.partners = models.lottery.belongsToMany(models.partner, {through: 'PartnerLottery'});
+    models.partner.lotteries = models.partner.belongsToMany(models.lottery, {through: 'partner_lottery'});
+    models.lottery.partners = models.lottery.belongsToMany(models.partner, {through: 'partner_lottery'});
 
-    models.partner.statsByDay = models.partner.hasMany(models.statByDay);
-    models.statByDay.partner = models.statByDay.belongsTo(models.partner);
+    models.partner.days = models.partner.belongsToMany(models.day, {through: 'partner_day'});
+    models.day.partners = models.day.belongsToMany(models.partner, {through: 'partner_day'});
 
     models.lotteryNominal.statsByDay = models.lotteryNominal.hasMany(models.statByDay);
     models.statByDay.partner = models.statByDay.belongsTo(models.lotteryNominal);

@@ -1,4 +1,4 @@
-const { Sequelize } = require('sequelize');
+const {Sequelize} = require('sequelize');
 const initModels = require('./index');
 const dbConfig = require('../config/dbConfigDocker');
 
@@ -16,6 +16,10 @@ class DBConnection {
                 host: dbConfig[mode].host,
                 port: dbConfig[mode].port,
                 dialect: dbConfig[mode].dialect,
+                dialectOptions: {
+                    useUTC: false,
+                },
+                timezone: "+03:00"
             },
         );
         this.models = null;
@@ -43,7 +47,7 @@ class DBConnection {
 
     async migrate({force = false}) {
         const output = await initModels(this.sequelize);
-        await this.sequelize.sync({ force: force });
+        await this.sequelize.sync({force: force});
         this.sequelize = output.sequelize;
         this.models = output.models;
         console.log('All models were synchronized successfully.');
@@ -79,6 +83,7 @@ class DBConnection {
             date: new Date(),
             coefficient: 0.1
         });
+        await today.setPartners(partners);
         let stats = [];
         for (let partner of partners) {
             for (let el of lotteryNominals) {
