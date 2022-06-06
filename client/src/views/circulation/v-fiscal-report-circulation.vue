@@ -155,6 +155,7 @@ export default {
               breakAuth.breakAuth(res);
             } else {
               this.nominals = [];
+              console.log(res.data.nominals);
               for (let nominal of res.data.nominals) {
                 nominal.broughtCirculation = 0;
                 nominal.value = Number(nominal.value);

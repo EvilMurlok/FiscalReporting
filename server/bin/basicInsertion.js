@@ -8,7 +8,7 @@ const dbConnection = require('../sequelize/dbConnection').getInstance({
 const main = async() => {
     try {
         await dbConnection.connectToDatabase();
-        await dbConnection.insertBasic();
+        await dbConnection.insert();
     } catch(e) {
         console.log(e);
     }

@@ -128,7 +128,7 @@
                                        :value="club.id"
                                        class="mb-2"
                       >
-                        <span class="text-muted">{{ club.name }} (до {{club.closedAt}})</span>
+                        <span class="text-muted">{{ club.name }} (до {{ club.closedAt }})</span>
                       </b-form-checkbox>
                     </b-col>
                     <b-col sm="1"></b-col>
@@ -139,7 +139,7 @@
                                        class="mb-2"
 
                       >
-                        <span class="text-muted">{{ club.name }} (до {{club.closedAt}})</span>
+                        <span class="text-muted">{{ club.name }} (до {{ club.closedAt }})</span>
                       </b-form-checkbox>
                     </b-col>
                   </b-row>
@@ -202,8 +202,7 @@
             </base-block>
           </b-form>
         </b-col>
-        <b-col sm="2">
-        </b-col>
+        <b-col sm="2"></b-col>
       </b-row>
       <base-block title="Таблица с отчетностью"
                   rounded
@@ -223,14 +222,14 @@
                   rowspan="2"
               >
                 <span style="cursor: pointer"
-                      @click="sortField({requireSortingField: 'lottery'})"
+                      @click="sortField({requireSortingField: 'lotteryName'})"
                 >
                   Лотерея
                   <i class="si si-arrow-up m-2"
-                     v-if="sortData.sortFields['lottery'] === 'ASC'">
+                     v-if="sortData.sortFields['lotteryName'] === 'ASC'">
                   </i>
                   <i class="si si-arrow-down m-2"
-                     v-else-if="sortData.sortFields['lottery'] === 'DESC'">
+                     v-else-if="sortData.sortFields['lotteryName'] === 'DESC'">
                   </i>
                 </span>
               </th>
@@ -241,18 +240,18 @@
                   rowspan="2"
               >
                 <span style="cursor: pointer"
-                      @click="sortField({requireSortingField: 'totalSum'})"
+                      @click="sortField({requireSortingField: 'totalSold'})"
                 >
                   Общая сумма продажи
                   <i class="si si-arrow-up m-2"
-                     v-if="sortData.sortFields['totalSum'] === 'ASC'">
+                     v-if="sortData.sortFields['totalSold'] === 'ASC'">
                   </i>
                   <i class="si si-arrow-down m-2"
-                     v-else-if="sortData.sortFields['totalSum'] === 'DESC'">
+                     v-else-if="sortData.sortFields['totalSold'] === 'DESC'">
                   </i>
                 </span>
               </th>
-              <th :colspan="reportTable.availableDenominations.length"
+              <th :colspan="reportTable.availableNominals.length"
                   rowspan="1"
                   class="text-center"
               >
@@ -267,14 +266,14 @@
                   rowspan="2"
               >
                 <span style="cursor: pointer"
-                      @click="sortField({requireSortingField: 'paidOutWinning'})"
+                      @click="sortField({requireSortingField: 'totalWin'})"
                 >
                   Выплачено выигрышей
                   <i class="si si-arrow-up m-2"
-                     v-if="sortData.sortFields['paidOutWinning'] === 'ASC'">
+                     v-if="sortData.sortFields['totalWin'] === 'ASC'">
                   </i>
                   <i class="si si-arrow-down m-2"
-                     v-else-if="sortData.sortFields['paidOutWinning'] === 'DESC'">
+                     v-else-if="sortData.sortFields['totalWin'] === 'DESC'">
                   </i>
                 </span>
               </th>
@@ -285,60 +284,61 @@
                   rowspan="2"
               >
                 <span style="cursor: pointer"
-                      @click="sortField({requireSortingField: 'withheldTax'})"
+                      @click="sortField({requireSortingField: 'totalTax'})"
                 >
                   НДФЛ удержано
                   <i class="si si-arrow-up m-2"
-                     v-if="sortData.sortFields['withheldTax'] === 'ASC'">
+                     v-if="sortData.sortFields['totalTax'] === 'ASC'">
                   </i>
                   <i class="si si-arrow-down m-2"
-                     v-else-if="sortData.sortFields['withheldTax'] === 'DESC'">
+                     v-else-if="sortData.sortFields['totalTax'] === 'DESC'">
                   </i>
                 </span>
               </th>
             </tr>
             <tr>
-              <th v-for="(denomination, indexDenomination) in reportTable.availableDenominations"
-                  :key="denomination"
+              <th v-for="(nominal, indexOfNominal) in reportTable.availableNominals"
+                  :key="nominal"
                   :style="{
-                          'width': `${reportTable.countOfDenominations}%`,
+                          'width': '12px',
                           'cursor': 'pointer'
                         }"
                   rowspan="1"
-                  @click="sortField({requireSortingField: denomination, requiredDenominationIndex: indexDenomination})"
+                  @click="sortField({requireSortingField: nominal, requiredNominalIndex: indexOfNominal})"
               >
                 <span class="ml-2">
-                      {{ denomination }}
+                      {{ nominal }}
                       <i class="si si-arrow-up m-2"
-                         v-if="sortData.sortFields[denomination] === 'ASC'">
+                         v-if="sortData.sortFields[nominal] === 'ASC'">
                       </i>
                       <i class="si si-arrow-down m-2"
-                         v-else-if="sortData.sortFields[denomination] === 'DESC'">
+                         v-else-if="sortData.sortFields[nominal] === 'DESC'">
                       </i>
-                </span></th>
+                </span>
+              </th>
             </tr>
             </thead>
             <tbody>
             <tr v-for="lottery in reportTable.reportData"
-                :key="lottery.lottery"
+                :key="lottery.lotteryName"
             >
               <td class="fw-semibold fs-sm">
-                <b>{{ lottery.lottery }}</b>
+                <b>{{ lottery.lotteryName }}</b>
               </td>
               <td class="fw-semibold fs-sm">
-                {{ lottery.totalSum }}
+                {{ lottery.totalSold }}
               </td>
-              <td v-for="remainder in lottery.denominations"
-                  :key="remainder"
+              <td v-for="nominalData in lottery.nominals"
+                  :key="nominalData.value"
                   class="fs-sm"
               >
-                {{ remainder }}
+                {{ nominalData.sold }}
               </td>
               <td class="fw-semibold fs-sm">
-                {{ lottery.paidOutWinning }}
+                {{ lottery.totalWin }}
               </td>
               <td class="fw-semibold fs-sm">
-                {{ lottery.withheldTax }}
+                {{ lottery.totalTax }}
               </td>
             </tr>
             <tr>
@@ -346,19 +346,19 @@
                 <b>Итого за период</b>
               </td>
               <td class="fw-semibold fs-sm">
-                {{ +reportTable.sumTotalSum.toFixed(2) }}
+                {{ +reportTable.sumTotalSold.toFixed(2) }}
               </td>
               <td class="fw-semibold fs-sm"
-                  v-for="sumRemainder in reportTable.amountsOfDenominations"
-                  :key="sumRemainder"
+                  v-for="sumNominal in reportTable.amountsOfSoldNominals"
+                  :key="sumNominal.value"
               >
-                {{ sumRemainder }}
+                {{ sumNominal.sold }}
               </td>
               <td class="fw-semibold fs-sm">
-                {{ +reportTable.sumPaidOutWinning.toFixed(2) }}
+                {{ +reportTable.sumTotalWin.toFixed(2) }}
               </td>
               <td class="fw-semibold fs-sm">
-                {{ +reportTable.sumWithheldTax.toFixed(2) }}
+                {{ +reportTable.sumTotalTax.toFixed(2) }}
               </td>
             </tr>
             </tbody>
@@ -418,10 +418,10 @@ export default {
         sortComparator: {"DESC>": -1, "DESC<": 1, "ASC>": 1, "ASC<": -1},
         sortChangeType: {"DESC": "ASC", "ASC": "DESC", "": "ASC"},
         sortFields: {
-          "lottery": "ASC",
-          "totalSum": "",
-          "paidOutWinning": "",
-          "withheldTax": ""
+          "lotteryName": "ASC",
+          "totalSold": "",
+          "totalWin": "",
+          "totalTax": ""
         }
       },
 
@@ -432,7 +432,7 @@ export default {
       loading: {
         isLoading: false,
         availablePhrases: [
-          "Составляем отчет...", "Крутим рулетку...",
+          "Составляем отчет...", "Тратим спины...",
           "Участвуем в лотерее...", "Переводим бумагу на отчет...",
           "Выигрываем джекпот...", "Делаем ставки...",
           "Призываем удачу...", "Перемешиваем лотерейные билеты..."
@@ -442,63 +442,13 @@ export default {
 
       reportTable: {
         isVisible: false,
-        countOfDenominations: 0.0,
-        availableDenominations: [0.1, 0.2, 0.3, 0.4, 0.5, 1, 2, 3, 4, 5, 10, 15],
-        reportData: [
-          {
-            "lottery": "Гамбусаки Хушхол",
-            "totalSum": 517.9,
-            "denominations": [16010, 7638, 4432, 4441, 5097, 2843, 1141, 574, 9, 7, 2, 1],
-            "paidOutWinning": 447.91,
-            "withheldTax": 58.23
-          },
-          {
-            "lottery": "Дурдонаи Гаронбахо",
-            "totalSum": 6.9,
-            "denominations": [16108, 7623, 4287, 4403, 5042, 2751, 983, 383, 222, 140, 12, 2],
-            "paidOutWinning": 456.91,
-            "withheldTax": 0.23
-          },
-          {
-            "lottery": "Киссахои Помир",
-            "totalSum": 32.9,
-            "denominations": [4632, 2329, 1423, 1452, 1627, 980, 416, 185, 444, 234, 43, 3],
-            "paidOutWinning": 74.91,
-            "withheldTax": 3.23
-          },
-          {
-            "lottery": "Мевахо",
-            "totalSum": 11.9,
-            "denominations": [38364, 17808, 9746, 10032, 11610, 6062, 1948, 698, 432, 521, 87, 4],
-            "paidOutWinning": 532.91,
-            "withheldTax": 5.23
-          },
-          {
-            "lottery": "Рохи Абрешим",
-            "totalSum": 2029.9,
-            "denominations": [43242, 15432, 8864, 10032, 3435, 5232, 1948, 698, 432, 34, 2, 1],
-            "paidOutWinning": 53.91,
-            "withheldTax": 65.23
-          },
-          {
-            "lottery": "Хирадманди Хушхол",
-            "totalSum": 30.9,
-            "denominations": [12343, 9647, 5436, 4441, 5097, 2843, 1141, 574, 376, 125, 45, 7],
-            "paidOutWinning": 2.91,
-            "withheldTax": 34.23
-          },
-          {
-            "lottery": "Хоча Насриддин",
-            "totalSum": 60.9,
-            "denominations": [12525, 9432, 7453, 3264, 6532, 6436, 2321, 235, 124, 53, 54, 34],
-            "paidOutWinning": 52.91,
-            "withheldTax": 9.23
-          },
-        ],
-        sumTotalSum: 0.0,
-        amountsOfDenominations: [],
-        sumPaidOutWinning: 0.0,
-        sumWithheldTax: 0.0,
+        maxCountOfNominals: 0,
+        availableNominals: [],
+        reportData: [],
+        sumTotalSold: 0.0,
+        amountsOfSoldNominals: [],
+        sumTotalWin: 0.0,
+        sumTotalTax: 0.0,
       },
       startDateOfReport: "",
       endDateOfReport: ""
@@ -566,32 +516,108 @@ export default {
       }
       if (!this.messages_data.messages.length) {
         this.loading.isLoading = true;
+        // this.loading.isLoading = true;
         // TODO запрос в бд на сбор информации
-        const timeId = setInterval(() => {
-          this.loading.currentPhraseIndex = Math.floor(Math.random() * (this.loading.availablePhrases.length - 1));
-          console.log("QWEQWEQWE");
-        }, 2000);
+        this.$http
+            .get("/stats/sells-report/", {
+              params: {
+                from: this.startDateOfReport,
+                to: this.endDateOfReport,
+                partnerIds: [...this.checkBoxesData.availablePartnersIds, ...this.checkBoxesData.disabledPartnersIds]
+              }
+            })
+            .then(res => {
+              if (res.data.isLoggedIn === false) {
+                breakAuth.breakAuth(res);
+              } else {
+                this.reportTable.availableNominals = [];
+                this.reportTable.reportData = [];
+                this.reportTable.amountsOfSoldNominals = [];
+                [this.reportTable.sumTotalSold, this.reportTable.sumTotalTax, this.reportTable.sumTotalWin] = [0.0, 0.0, 0.0];
+                if (res.data.status === "success") {
+                  const tempReportTable = res.data.sellsData;
+                  // сначала создаем массив из ВСЕХ полученных номиналов
+                  for (let lottery of tempReportTable) {
+                    for (let nominal of lottery.nominals) {
+                      if (this.reportTable.availableNominals.findIndex(availableNominal => availableNominal === nominal.value) < 0) {
+                        this.reportTable.availableNominals.push(nominal.value);
+                        // суммарное количество по номиналам
+                        this.reportTable.amountsOfSoldNominals.push({
+                          value: nominal.value,
+                          sold: 0
+                        });
+                      }
+                    }
+                  }
+                  // сортировка от самого наименьшего номинала до самого наибольшего
+                  this.reportTable.availableNominals.sort((lhs, rhs) => {
+                    return parseFloat(lhs) - parseFloat(rhs);
+                  });
+                  // для нормального отображения таблицы с остатками по номиналам необходимо вычислить ширину колонок
+                  this.reportTable.maxCountOfNominals = 60 / this.reportTable.availableNominals.length;
 
+                  // сортировка массива с суммарными количествами по номиналу от меньшего номинала к большему
+                  this.reportTable.amountsOfSoldNominals.sort((lhs, rhs) => {
+                    return parseFloat(lhs.value) - parseFloat(rhs.value);
+                  });
+
+                  // заполняем массив для сортировки по номиналам
+                  for (let availableNominal of this.reportTable.availableNominals) {
+                    this.sortData.sortFields[availableNominal] = "";
+                  }
+                  console.log(this.sortData.sortFields);
+
+                  // теперь надо создать таблицу, где для каждого номинала будет информация
+                  // (если у какой-то лотереи нет какого-то номинала, тогда ставим "-")
+                  for (let lottery of tempReportTable) {
+                    const tempNominals = [];
+                    for (let availableNominal of this.reportTable.availableNominals) {
+                      const receivedNominal = lottery.nominals.find(nominal => nominal.value === availableNominal);
+                      if (receivedNominal) {
+                        tempNominals.push({value: receivedNominal.value, sold: receivedNominal.sold});
+                      } else {
+                        tempNominals.push({value: availableNominal, sold: "-"});
+                      }
+                    }
+                    this.reportTable.reportData.push({
+                      lotteryName: lottery.lotteryName,
+                      nominals: tempNominals,
+                      totalSold: lottery.totalSold,
+                      totalWin: lottery.totalWin,
+                      totalTax: lottery.totalTax
+                    });
+                  }
+                  // вычисляем суммарную статистику по каждой лотерее, по каждому номиналу
+                  for (let lottery of this.reportTable.reportData) {
+                    this.reportTable.sumTotalSold += lottery.totalSold;
+                    this.reportTable.sumTotalWin += lottery.totalWin;
+                    this.reportTable.sumTotalTax += lottery.totalTax;
+                    for (let nominal of lottery.nominals) {
+                      // если в суммировании такой номинал еще не встречался, тогда добавляем его и приравниваем к 0
+                      if (nominal.sold !== "-") {
+                        const amountOfSoldNominal = this.reportTable.amountsOfSoldNominals.find(amount => amount.value === nominal.value);
+                        amountOfSoldNominal.sold += nominal.sold;
+                      }
+                    }
+                  }
+                  this.reportTable.isVisible = true;
+                }
+                this.loading.isLoading = false;
+                this.messages_data = {type: res.data.status, messages: res.data.messages}
+              }
+            })
+            .catch(err => console.error(err));
         // TODO конец запроса
 
-        for (let availableDenomination of this.reportTable.availableDenominations) {
-          this.sortData.sortFields[availableDenomination] = "";
-        }
-        this.reportTable.amountsOfDenominations = Array(this.reportTable.availableDenominations.length).fill(0.0);
-        console.log(this.sortData.sortFields);
-        for (let lottery of this.reportTable.reportData) {
-          this.reportTable.sumTotalSum += lottery.totalSum;
-          this.reportTable.sumPaidOutWinning += lottery.paidOutWinning;
-          this.reportTable.sumWithheldTax += lottery.withheldTax;
-          for (let indexDenominations in lottery["denominations"]) {
-            this.reportTable.amountsOfDenominations[indexDenominations] += lottery["denominations"][indexDenominations];
-          }
-        }
-        this.reportTable.countOfDenominations = 60 / this.reportTable.availableDenominations.length;
-        setTimeout(() => {
-          clearInterval(timeId);
-          [this.reportTable.isVisible, this.loading.isLoading] = [true, false];
-        }, 15000);
+        // const timeId = setInterval(() => {
+        //   this.loading.currentPhraseIndex = Math.floor(Math.random() * (this.loading.availablePhrases.length - 1));
+        //   console.log("QWEQWEQWE");
+        // }, 2000);
+
+        // setTimeout(() => {
+        //   clearInterval(timeId);
+        //   [this.reportTable.isVisible, this.loading.isLoading] = [true, false];
+        // }, 15000);
 
       }
     },
@@ -609,25 +635,23 @@ export default {
           .catch(err => console.error(err));
     },
 
-    sortField({requireSortingField = "lottery", requiredDenominationIndex = -1}) {
-      if (requiredDenominationIndex >= 0) {
-        requireSortingField = parseFloat(requireSortingField);
-      }
+    sortField({requireSortingField = "lotteryName", requiredNominalIndex = -1}) {
       let sortedType = "ASC";
       for (let sortField in this.sortData.sortFields) {
-        sortField = (!["lottery", "totalSum", "paidOutWinning", "withheldTax"].includes(sortField)) ? parseFloat(sortField) : sortField;
         if (requireSortingField === sortField) {
           sortedType = this.sortData.sortFields[sortField] = this.sortData.sortChangeType[this.sortData.sortFields[requireSortingField]]
         } else {
           this.sortData.sortFields[sortField] = "";
         }
       }
-      if (requiredDenominationIndex >= 0) {
+      if (requiredNominalIndex >= 0) {
         this.reportTable.reportData.sort((lhs, rhs) => {
-          if (lhs["denominations"][requiredDenominationIndex] > rhs["denominations"][requiredDenominationIndex]) {
+          const lhsValue = (lhs.nominals[requiredNominalIndex].sold !== "-") ? lhs.nominals[requiredNominalIndex].sold : 0;
+          const rhsValue = (rhs.nominals[requiredNominalIndex].sold !== "-") ? rhs.nominals[requiredNominalIndex].sold : 0;
+          if (lhsValue > rhsValue) {
             return this.sortData.sortComparator[sortedType + ">"];
           }
-          if (lhs["denominations"][requiredDenominationIndex] < rhs["denominations"][requiredDenominationIndex]) {
+          if (lhsValue < rhsValue) {
             return this.sortData.sortComparator[sortedType + "<"];
           }
         });

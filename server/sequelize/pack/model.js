@@ -20,10 +20,11 @@ module.exports = async(sequelize) => {
          *     ]
          * }
          * @param date
+         * @param withCurrentAmountUpdate
          * @param transaction транзакция запросов
          * @returns {Promise<void>}
          */
-        static createWithParcels = async({ user = null, packInfo = null, date = null, transaction = null}) => {
+        static createWithParcels = async({ user = null, packInfo = null, date = null, withCurrentAmountUpdate = true, transaction = null}) => {
             if (!user) {
                 throw new PackCredentialsError(
                     'Неверные данные для создания Тиража',
@@ -86,6 +87,7 @@ module.exports = async(sequelize) => {
                 lotteryId: packInfo.lotteryId,
                 nominalsInfo: packInfo.nominals,
                 date: date,
+                withCurrentAmountUpdate: withCurrentAmountUpdate,
                 transaction: transaction
             });
 

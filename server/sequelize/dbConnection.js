@@ -55,52 +55,78 @@ class DBConnection {
         console.log('All models were synchronized successfully.');
     }
 
-    async insertBasic() {
+    async insert() {
         let root = this.models.user.create({
             username: 'root',
             password: 'qwerty123',
             role: 'root'
         });
-        // let lotteries = lotteriesJSON.lotteries;
-        // lotteries = await this.models.lottery.bulkCreate(lotteries);
-        // let nominals = nominalsJSON.nominals;
-        // nominals = await this.models.nominal.bulkCreate(nominals);
-        // let partners = partnersJSON.partners;
-        // partners = await this.models.partner.bulkCreate(partners);
-        // let ln = [];
-        // for (let lottery of lotteries) {
-        //     for (let nominal of nominals) {
-        //         ln.push({
-        //             amount: 0,
-        //             nominalId: nominal.id,
-        //             lotteryId: lottery.id
-        //         });
-        //     }
-        //     await lottery.setPartners(partners);
-        // }
-        // let lotteryNominals = await this.models.lotteryNominal.bulkCreate(ln);
-
-        // мб придется подправить этот момент
         await this.models.day.create({
             date: moment().subtract(5, "day"),
             coefficient: 0.1
         });
-        // await today.setPartners(partners);
-        // let stats = [];
-        // for (let partner of partners) {
-        //     for (let el of lotteryNominals) {
-        //         stats.push({
-        //             amountAtEnd: 0,
-        //             totalWin: 0,
-        //             totalSold: 0,
-        //             partnerId: partner.id,
-        //             lotteryNominalId: el.id,
-        //             dayId: today.id
-        //         });
-        //     }
-        // }
-        // // stats.forEach(st => console.log(st));
-        // await this.models.statByDay.bulkCreate(stats);
+    }
+
+    async insertBasic() {
+        const date = new Date();
+        let root = this.models.user.create({
+            username: 'root',
+            password: 'qwerty123',
+            role: 'root'
+        });
+        let lotteries = lotteriesJSON.lotteries;
+        lotteries = await this.models.lottery.bulkCreate(lotteries);
+        let nominals = nominalsJSON.nominals;
+        nominals = await this.models.nominal.bulkCreate(nominals);
+        let partners = partnersJSON.partners;
+        partners = await this.models.partner.bulkCreate(partners);
+        let ln = [];
+        for (let lottery of lotteries) {
+            for (let nominal of nominals) {
+                ln.push({
+                    amount: 0,
+                    nominalId: nominal.id,
+                    lotteryId: lottery.id
+                });
+            }
+            await lottery.setPartners(partners);
+        }
+        let lotteryNominals = await this.models.lotteryNominal.bulkCreate(ln);
+
+        let lns = [];
+        for (let lotteryNominal of lotteryNominals) {
+            lns.push({
+                amountAtStart: 0,
+                income: 0,
+                amountAtEnd: null,
+                date: date,
+                lotteryNominalId: lotteryNominal.id
+            });
+        }
+
+        let lotteryNominalStats = await this.models.lotteryNominalStat.bulkCreate(lns);
+
+        // мб придется подправить этот момент
+        const today = await this.models.day.create({
+            date: date,
+            coefficient: 0.1
+        });
+        await today.setPartners(partners);
+        let stats = [];
+        for (let partner of partners) {
+            for (let el of lotteryNominals) {
+                stats.push({
+                    amountAtEnd: 0,
+                    totalWin: 0,
+                    totalSold: 0,
+                    partnerId: partner.id,
+                    lotteryNominalId: el.id,
+                    dayId: today.id
+                });
+            }
+        }
+        // stats.forEach(st => console.log(st));
+        await this.models.statByDay.bulkCreate(stats);
     }
 
     async insertStatsForNextDay({date = ''}) {

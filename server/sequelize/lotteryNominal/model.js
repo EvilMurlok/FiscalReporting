@@ -84,6 +84,7 @@ module.exports = async (sequelize) => {
          * *         "id": id номинала,
          * *         "broughtCirculation": внесенное количество номинала
          * *       }
+         * @param withCurrentAmountUpdate
          * @param transaction
          * @returns {Promise<LotteryNominal[]>}
          */
@@ -91,6 +92,7 @@ module.exports = async (sequelize) => {
                                                              lotteryId = 0,
                                                              nominalsInfo = null,
                                                              date = "",
+                                                             withCurrentAmountUpdate = true,
                                                              transaction = null
                                                          }) => {
             if (lotteryId <= 0) {
@@ -143,15 +145,13 @@ module.exports = async (sequelize) => {
             });
             lotteryNominalStats.forEach(el => console.log(el.id, el.lotteryNominalId));
             for (let ln of lotteryNominals) {
-                // console.log(ln);
-                // console.log(ln.lotteryNominalStats);
                 let index = nominalsInfo.findIndex((el) => el.id === ln.nominalId);
                 let lns = lotteryNominalStats.find((el) => el.lotteryNominalId === ln.id);
-                // console.log(lns);
-                ln.amount += nominalsInfo[index].broughtCirculation;
+                if (withCurrentAmountUpdate) {
+                    ln.amount += nominalsInfo[index].broughtCirculation;
+                    await ln.save({transaction: transaction});
+                }
                 lns.income += nominalsInfo[index].broughtCirculation;
-                // console.log('found index: ', index, 'toAdd', nominalsInfo[index].broughtCirculation, 'updated', ln.amount);
-                await ln.save({transaction: transaction});
                 await lns.save({transaction: transaction});
             }
             return lotteryNominals;

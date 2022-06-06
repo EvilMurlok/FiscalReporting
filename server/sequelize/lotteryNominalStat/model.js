@@ -4,15 +4,15 @@ const moment = require("moment");
 
 module.exports = async (sequelize) => {
     class LotteryNominalStat extends Model {
-        static getBalanceReport = async({date = null}) => {
+        static getBalanceReport = async ({date = null}) => {
             // формат date — YYYY-MM-DD !!!
             if (!date) {
                 throw new StatByDayCredentialsError("Date are expected!", [{
                     text: "Для получения статистики необходимо указать дату"
                 }]);
             }
-            if (moment(date, 'YYYY-MM-DD').diff(moment().format('YYYY-MM-DD')) >= 0) {
-                throw new StatByDayCredentialsError("Date are expected!", [{
+            if (moment(date, 'YYYY-MM-DD').diff(moment(await sequelize.models.day.max('date'), 'YYYY-MM-DD').format('YYYY-MM-DD')) >= 0) {
+                throw new StatByDayCredentialsError("Stats are not ready!", [{
                     text: "Статистика по этому дню еще не собрана"
                 }]);
             }
@@ -20,7 +20,7 @@ module.exports = async (sequelize) => {
                 attributes: [
                     'name',
                     [sequelize.literal('"lotteryNominals->nominal".value'), 'value'],
-                    [sequelize.literal('"lotteryNominalStat".amountAtEnd'), 'amount']
+                    [sequelize.literal('"lotteryNominals->lotteryNominalStats"."amountAtEnd"'), 'amount']
                 ],
                 include: {
                     model: sequelize.models.lotteryNominal,
@@ -41,41 +41,38 @@ module.exports = async (sequelize) => {
                             }
                         }
                     ]
-                }
+                },
+                raw: true,
+                order: [["name", "ASC"]],
             });
+            if (remains.length === 0) {
+                throw new StatByDayCredentialsError("Information for this day has not yet been collected!", [{
+                    text: "Информация по этому дню еще не собрана!"
+                }]);
+            }
 
-            console.log(remains.dataValues);
+            let remaindersData = [];
 
-            let output = {
-                remaindersData: [
-                    {
-                        lottery: remains[0].name,
-                        remainders: [
-                            {
-                                value: remains[0].value,
-                                amount: remains[0].amount
-                            }
-                        ]
-                    }
-                ]
-            };
-            let j = 0;
-            for (let i = 1; i < remains.length; i++) {
-                if (remains[i].name !== remains[i-1].name) {
-                    output.remaindersData.push({
-                        lottery: remains[i].name,
+            for (let remain of remains) {
+                let lotteryIndex = remaindersData.findIndex(rd => rd.lottery === remain.name);
+                if (lotteryIndex === -1) {
+                    remaindersData.push({
+                        lottery: remain.name,
                         remainders: []
                     });
-                    j++;
-                }
-                output.remaindersData[j].remainders.push(
-                    {
-                        value: remains[i].value,
-                        amount: remains[i].amount
+                } else {
+                    let remainIndex = remaindersData[lotteryIndex].remainders.findIndex(r => r.value === remain.value);
+                    if (remainIndex === -1) {
+                        remaindersData[lotteryIndex].remainders.push({
+                            value: remain.value,
+                            amount: 0
+                        });
+                        remainIndex = remaindersData[lotteryIndex].remainders.length - 1;
                     }
-                );
+                    remaindersData[lotteryIndex].remainders[remainIndex].amount += remain.amount;
+                }
             }
-            return output.remaindersData;
+            return remaindersData;
         }
     }
 

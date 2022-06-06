@@ -364,6 +364,10 @@ const insertStatsForNextDay = async ({previousDay = '', nextDay = null, data = n
 
                 // если не исторические данные, то надо добавить данные за следующий день!
                 newAmountAtStart = lnStat.amountAtEnd;
+
+                // обновляем текущий баланс
+                ln.amount = newAmountAtStart;
+                await ln.save();
                 newLotteryNominalStats.push({
                     amountAtStart: newAmountAtStart,
                     income: 0,
@@ -378,6 +382,7 @@ const insertStatsForNextDay = async ({previousDay = '', nextDay = null, data = n
                 // продали больше, чем имеется => надо довыпустить тираж
                 // broughtCirculation = lnStat.amountAtEnd + sell.amount - (amountAtStart + income);
                 // }
+                // не изменяем текущий баланс, тк изменяем исторические данные
                 broughtCirculation = lnStat.amountAtEnd + sell.amount - (amountAtStart + income);
             }
             // если надо довыпустить номинала
@@ -412,60 +417,6 @@ const insertStatsForNextDay = async ({previousDay = '', nextDay = null, data = n
                     });
                 }
             }
-            // ЭТО СТАРАЯ ВЕРСИЯ (НЕ УДАЛЯТЬ, ВДРУГ ПОНАДОБИТСЯ
-            // если продали больше, чем было суммарно в конце дня
-            // if (sell.amount > amountAtStart + income) {
-            //     let broughtCirculation = null;
-            //     // если добавляем свежие данные (нет данных по тому, сколько ДОЛЖНО остаться на конец дня)
-            //     if (lnStat.amountAtEnd === null) {
-            //         // довыпускаем нужное количество
-            //         broughtCirculation = sell.amount - (amountAtStart + income);
-            //         lnStat.amountAtEnd = 0;
-            //     } else {
-            //         // довыпускаем нужное количество номинала таким образом, чтобы amountAtEnd не изменился
-            //         broughtCirculation = lnStat.amountAtEnd + sell.amount - (amountAtStart + income);
-            //     }
-            //     // пытаемся найти элемент, который указывает на то, сколько надо довыпустить этого номинала
-            //     // сначала находмим лотерею
-            //     let parcel = needToAdd.find(el => el.lotteryId === ln.lotteryId);
-            //     if (parcel) {
-            //         // если находим, то пытаемся найти номинал в лотерее
-            //         let nominal = parcel.nominals.find(p => p.id === ln.nominal.id);
-            //         if (nominal) {
-            //             // если находим то просто прибавляем
-            //             nominal.broughtCirculation += broughtCirculation;
-            //         } else {
-            //             // если нет, то добавляем номинал
-            //             parcel.nominals.push({
-            //                 id: ln.nominal.id,
-            //                 broughtCirculation: broughtCirculation
-            //             });
-            //         }
-            //     } else {
-            //         // если не находим, то добавляем лотерею с номиналом
-            //         needToAdd.push({
-            //             lotteryId: ln.lotteryId,
-            //             date: previousDay.date,
-            //             nominals: [
-            //                 {
-            //                     id: ln.nominal.id,
-            //                     broughtCirculation: broughtCirculation
-            //                 }
-            //             ]
-            //         });
-            //     }
-            // } else {
-            //     lnStat.amountAtEnd = amountAtStart + income - sell.amount;
-            //     newAmountAtStart = amountAtStart + income - sell.amount;
-            // }
-            // await lnStat.save({transaction: transaction});
-            // newLotteryNominalStats.push({
-            //     amountAtStart: newAmountAtStart,
-            //     income: 0,
-            //     amountAtEnd: null,
-            //     date: nextDay.date,
-            //     lotteryNominalId: ln.id
-            // });
         }
 
         // console.log(needToAdd);
@@ -478,11 +429,13 @@ const insertStatsForNextDay = async ({previousDay = '', nextDay = null, data = n
 
         needToAdd.forEach(el => console.log(el));
 
+        // Сощдаем тиражи БЕЗ ИЗМЕНЕНИЯ ТЕКУЩЕГО БАЛАНСА, тк уже поменяли его в прошлом цикле
         for (let pack of needToAdd) {
             await dbConnection.models.pack.createWithParcels({
                 user: root,
                 packInfo: pack,
                 date: previousDay.date,
+                withCurrentAmountUpdate: false,
                 transaction: transaction
             });
         }

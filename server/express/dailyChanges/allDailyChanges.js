@@ -1,10 +1,9 @@
 const moment = require("moment");
-const {Op, Transaction} = require("sequelize");
+const {Op} = require("sequelize");
 const {changeKqDaily} = require("./coefficient");
 const config = require("../../config/dbConfigDocker");
 const {checkForPartnersUpdatesDaily} = require("./partner");
 const {getBetTradeDataByYesterday, insertStatsForNextDay} = require("./statsByDay");
-const {PartnerCommonError} = require("../../sequelize/partner/errors");
 const dbConnection = require('../../sequelize/dbConnection').getInstance({config: config, mode: 'development'});
 
 
@@ -43,7 +42,7 @@ const makeDailyChanges = async (req, res) => {
         const t = await dbConnection.sequelize.transaction();
         try {
             insertedCoefficientToday = await dbConnection.models.day.create({
-                date: moment(date, 'YYYY-MM-DD').add(2, 'day').format("YYYY-MM-DD"),
+                date: moment(date, 'YYYY-MM-DD').add(1, 'day').format("YYYY-MM-DD"),
                 coefficient: yesterdayKq.coefficient
             }, {transaction: t});
             // всех партнеров соединяем с новым днем!
@@ -72,9 +71,6 @@ const makeDailyChanges = async (req, res) => {
         });
     } catch (e) {
         console.log(e);
-        throw new PartnerCommonError(e.message, [{
-            text: "Не удалось произвести ежедневное обновление данных в системе!"
-        }]);
     }
 
 }

@@ -84,13 +84,28 @@
                 </b-col>
               </b-row>
             </b-form>
+            <b-row v-if="loading.isLoading === true"
+                   class="mt-2"
+            >
+              <b-col sm="1"></b-col>
+              <b-col sm="1">
+                <div>
+                  <i class="fa fa-2x fa-cog fa-spin"></i>
+                </div>
+              </b-col>
+              <b-col sm="5">
+                <div class="mt-1">
+                  {{ this.loading.availablePhrases[this.loading.currentPhraseIndex] }}
+                </div>
+              </b-col>
+            </b-row>
             <div class="table-responsive mb-0"
                  v-if="tableOfRemainders.remaindersData.length > 0"
             >
               <table class="table table-bordered table-striped table-vcenter">
                 <thead>
                 <tr>
-                  <th style="width: 20%">
+                  <th style="width: 15%">
                     <div :style="{
                                      'background-image': 'linear-gradient(to bottom left, transparent 48%, #d8dce4ff, transparent 50%)',
                                      'background-repeat': 'no-repeat',
@@ -115,21 +130,21 @@
                       </div>
                     </div>
                   </th>
-                  <th v-for="(denomination, indexOfDenomination) in tableOfRemainders.availableDenominations"
-                      :key="denomination"
+                  <th v-for="(nominal, indexOfNominal) in tableOfRemainders.availableNominals"
+                      :key="nominal"
                       :style="{
-                                'width': `${tableOfRemainders.countOfDenominations}%`,
+                                'width': '12px',
                                 'cursor': 'pointer'
                               }"
-                      @click="sortField({requireSortingField: denomination, indexOfDenomination: indexOfDenomination})"
+                      @click="sortField({requireSortingField: nominal, indexOfNominal: indexOfNominal})"
                   >
                     <span class="ml-2">
-                          {{ denomination }}
+                          {{ nominal }}
                           <i class="si si-arrow-up m-2"
-                             v-if="sortData.sortFields[denomination] === 'ASC'">
+                             v-if="sortData.sortFields[nominal] === 'ASC'">
                           </i>
                           <i class="si si-arrow-down m-2"
-                             v-else-if="sortData.sortFields[denomination] === 'DESC'">
+                             v-else-if="sortData.sortFields[nominal] === 'DESC'">
                           </i>
                     </span>
                   </th>
@@ -187,18 +202,30 @@ export default {
         }
       },
 
-      dateOfReport: moment().format().slice(0, 10),
-      maxDate: moment().format().slice(0, 10),
-      actualDate: moment().subtract(1, "day").format().slice(0, 10),
+      loading: {
+        isLoading: false,
+        availablePhrases: [
+          "Составляем отчет...", "Тратим спины...",
+          "Участвуем в лотерее...", "Переводим бумагу на отчет...",
+          "Выигрываем джекпот...", "Делаем ставки...",
+          "Призываем удачу...", "Перемешиваем лотерейные билеты..."
+        ],
+        currentPhraseIndex: 0,
+      },
+
+      dateOfReport: moment().subtract(1, "day").format().slice(0, 10),
+      maxDate: moment().subtract(1, "day").format().slice(0, 10),
+      actualDate: moment().subtract(2, "day").format().slice(0, 10),
       tableOfRemainders: {
-        countOfDenominations: 0,
-        availableDenominations: [],
+        countOfNominals: 0,
+        availableNominals: [],
         remaindersData: [],
       }
     }
   },
 
   created() {
+    this.loading.isLoading = true;
     this.$http
         .get("/stats/balance-report/", {
           params: {
@@ -209,18 +236,14 @@ export default {
           if (res.data.isLoggedIn === false) {
             breakAuth.breakAuth(res);
           } else {
+            this.tableOfRemainders.remaindersData = [];
+            this.tableOfRemainders.availableNominals = [];
+            this.tableOfRemainders.countOfNominals = 0;
+            this.sortData.sortFields = {"lottery": "ASC",};
             if (res.data.status === "success") {
-              this.tableOfRemainders.remaindersData = res.data.remaindersData;
-              this.tableOfRemainders.availableDenominations = this.tableOfRemainders.remaindersData[0].remainders.map(remainder => remainder.value);
-              this.tableOfRemainders.countOfDenominations = 80 / this.tableOfRemainders.remaindersData[0].remainders.length;
-              for (let denomination of this.tableOfRemainders.availableDenominations) {
-                this.sortData.sortFields[denomination] = "";
-              }
-            } else {
-              this.tableOfRemainders.remaindersData = this.tableOfRemainders.availableDenominations = [];
-              this.tableOfRemainders.countOfDenominations = 0;
-              this.sortData.sortFields = {"lottery": "ASC",};
+              this.preprocessingOfRemainders(res.data.remaindersData);
             }
+            this.loading.isLoading = false;
             this.messages_data = {type: res.data.status, messages: res.data.messages};
           }
         })
@@ -228,6 +251,54 @@ export default {
   },
 
   methods: {
+    preprocessingOfRemainders(remaindersData) {
+      const tempRemaindersData = remaindersData;
+      // необходимо сформировать список ВСЕХ номиналов в системе для таблицы
+      for (let lottery of tempRemaindersData) {
+        for (let remainder of lottery.remainders) {
+          if (this.tableOfRemainders.availableNominals.findIndex(availableNominal => availableNominal === remainder.value) < 0) {
+            this.tableOfRemainders.availableNominals.push(remainder.value);
+          }
+        }
+      }
+      // для отображения на странице всех номиналов определенной ширины
+      this.tableOfRemainders.countOfNominals = 85 / this.tableOfRemainders.availableNominals.length;
+
+      // отсортировать список ВСЕХ номиналов от меньшего к большему
+      this.tableOfRemainders.availableNominals.sort((lhs, rhs) => {
+        return parseFloat(lhs) - parseFloat(rhs);
+      });
+
+      // заполняем массив для сортировки по номиналам
+      for (let availableNominal of this.tableOfRemainders.availableNominals) {
+        this.sortData.sortFields[availableNominal] = "";
+      }
+      // console.log(this.sortData.sortFields);
+      // console.log(this.tableOfRemainders.availableNominals);
+
+      // теперь надо создать таблицу, где для каждого номинала будет информация
+      // (если у какой-то лотереи нет какого-то номинала, тогда ставим "-")
+      // this.tableOfRemainders.remaindersData.forEach(rem => console.log('3u3a', rem));
+
+      for (let lottery of tempRemaindersData) {
+        const tempRemainders = [];
+        for (let availableNominal of this.tableOfRemainders.availableNominals) {
+          const receivedNominal = lottery.remainders.find(remainder => remainder.value === availableNominal);
+          if (receivedNominal) {
+            tempRemainders.push({value: receivedNominal.value, amount: receivedNominal.amount});
+          } else {
+            tempRemainders.push({value: availableNominal, amount: "-"});
+          }
+        }
+        this.tableOfRemainders.remaindersData.push({
+          lottery: lottery.lottery,
+          remainders: tempRemainders
+        });
+        // tempRemainders.forEach(rem => console.log(rem));
+      }
+      // this.tableOfRemainders.remaindersData.forEach(rem => console.log('4u4a', rem));
+    },
+
     showRemainders(movement = "no") {
       if (this.messages_data.messages.length !== 0) {
         this.messages_data = {type: "warning", messages: []};
@@ -244,6 +315,7 @@ export default {
         } else if (movement === "minus") {
           this.dateOfReport = moment(this.dateOfReport).subtract(1, "day").format("YYYY-MM-DD");
         }
+        this.loading.isLoading = true;
         this.$http
             .get("/stats/balance-report/", {
               params: {
@@ -254,18 +326,14 @@ export default {
               if (res.data.isLoggedIn === false) {
                 breakAuth.breakAuth(res);
               } else {
+                this.tableOfRemainders.remaindersData = [];
+                this.tableOfRemainders.availableNominals = [];
+                this.tableOfRemainders.countOfNominals = 0;
+                this.sortData.sortFields = {"lottery": "ASC",};
                 if (res.data.status === "success") {
-                  this.tableOfRemainders.remaindersData = res.data.remaindersData;
-                  this.tableOfRemainders.availableDenominations = this.tableOfRemainders.remaindersData[0].remainders.map(remainder => remainder.value);
-                  this.tableOfRemainders.countOfDenominations = 80 / this.tableOfRemainders.remaindersData[0].remainders.length;
-                  for (let denomination of this.tableOfRemainders.availableDenominations) {
-                    this.sortData.sortFields[denomination] = "";
-                  }
-                } else {
-                  this.tableOfRemainders.remaindersData = this.tableOfRemainders.availableDenominations = [];
-                  this.tableOfRemainders.countOfDenominations = 0;
-                  this.sortData.sortFields = {"lottery": "ASC",};
+                  this.preprocessingOfRemainders(res.data.remaindersData);
                 }
+                this.loading.isLoading = false;
                 this.messages_data = {type: res.data.status, messages: res.data.messages};
               }
             })
@@ -302,7 +370,8 @@ export default {
       }
     },
 
-    sortField({requireSortingField = "lottery", indexOfDenomination = -1}) {
+    sortField({requireSortingField = "lottery", indexOfNominal = -1}) {
+      console.error(requireSortingField);
       let sortedType = "ASC";
       for (let sortField in this.sortData.sortFields) {
         if (requireSortingField === sortField) {
@@ -323,10 +392,14 @@ export default {
         });
       } else {
         this.tableOfRemainders.remaindersData.sort((lhs, rhs) => {
-          if (lhs["remainders"][indexOfDenomination].amount > rhs["remainders"][indexOfDenomination].amount) {
+          console.log(lhs.remainders[indexOfNominal].value, lhs.remainders[indexOfNominal].amount);
+          console.log(lhs.remainders[indexOfNominal].value, rhs.remainders[indexOfNominal].amount);
+          const lhsValue = (lhs.remainders[indexOfNominal].amount !== "-") ? lhs.remainders[indexOfNominal].amount : 1;
+          const rhsValue = (rhs.remainders[indexOfNominal].amount !== "-") ? rhs.remainders[indexOfNominal].amount : 1;
+          if (lhsValue > rhsValue) {
             return this.sortData.sortComparator[sortedType + ">"];
           }
-          if (lhs["remainders"][indexOfDenomination].amount < rhs["remainders"][indexOfDenomination].amount) {
+          if (lhsValue < rhsValue) {
             return this.sortData.sortComparator[sortedType + "<"];
           }
           return 0;
