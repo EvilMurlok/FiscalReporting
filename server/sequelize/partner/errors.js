@@ -48,13 +48,6 @@ class PartnerTransactionError extends PartnerCommonError {
     }
 }
 
-class PartnerGrafanaError extends PartnerCommonError {
-    constructor (message, messages) {
-        super(message, messages);
-        this.name = 'PartnerGrafanaError';
-    }
-}
-
 module.exports = {
     PartnerCommonError,
     PartnerCredentialsError,
@@ -63,6 +56,5 @@ module.exports = {
     PartnerNotFoundError,
     PartnerDeletionError,
     PartnerTransactionError,
-    PartnerGrafanaError
 }
 

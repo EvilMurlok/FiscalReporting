@@ -15,9 +15,10 @@ const coefficientRouter = require("./coefficient/router");
 const packRouter = require("./pack/router");
 const lotteryRouter = require("./lottery/router");
 const statsRouter = require('./statByDay/router');
+const dailyRouter = require('./dailyChanges/router');
 
 // different utils
-const coefficientUtils = require("../express/coefficient/utils");
+const {changeKqDaily} = require("../express/dailyChanges/coefficient");
 
 // local auth requirements
 const {SESSION_SECRET} = require("../config/sessionConfig");
@@ -56,7 +57,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(flash());
 
-schedule.scheduleJob("0 0 * * *", coefficientUtils.changeKqDaily);
+
+schedule.scheduleJob("0 0 * * *", changeKqDaily);
 
 app.use("/auth/", authRouter);
 app.use("/excel-reports/", excelReportsRouter);
@@ -65,5 +67,6 @@ app.use("/coefficient/", coefficientRouter);
 app.use("/pack/", packRouter);
 app.use("/lottery/", lotteryRouter);
 app.use('/stats/', statsRouter);
+app.use('/daily/', dailyRouter);
 
 module.exports = app;

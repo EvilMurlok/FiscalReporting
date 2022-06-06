@@ -1,6 +1,7 @@
 const day = require('./day/model');
 const lottery = require('./lottery/model');
 const lotteryNominal = require('./lotteryNominal/model');
+const LotteryNominalStat = require('./lotteryNominalStat/model');
 const nominal = require('./nominal/model');
 const pack = require('./pack/model');
 const parcel = require('./parcel/model');
@@ -15,6 +16,7 @@ const initModels = async(sequelize) => {
         day,
         lottery,
         lotteryNominal,
+        LotteryNominalStat,
         nominal,
         pack,
         parcel,

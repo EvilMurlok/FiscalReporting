@@ -8,10 +8,6 @@ const dbConnection = require('./server/sequelize/dbConnection').getInstance({
 });
 
 async function init() {
-    const readline = require('readline').createInterface({
-        input: process.stdin,
-        output: process.stdout,
-    });
     await dbConnection.connectToDatabase();
     // await dbConnection.migrate({force: true},);
     app.listen(PORT, () => {

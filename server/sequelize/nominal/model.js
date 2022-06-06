@@ -15,12 +15,16 @@ module.exports = async(sequelize) => {
             autoIncrement: true
         },
         value: {
-            type: DataTypes.ENUM('0.1', '0.2', '0.3', '0.4', '0.5', '1', '2', '3', '4', '5', '10', '15', '20', '25'),
+            type: DataTypes.STRING,
             unique: {
                 msg: 'Уже есть номинал с таким значением'
             },
             allowNull: false,
             validate: {
+                is: {
+                   msg: "Номинал может быть только целым числом или числом с плавающей точкой",
+                   args: [/^[0-9]*[.]?[0-9]+$/]
+                },
                 notEmpty: {
                     msg: 'Необходимо указать значение номинала'
                 }

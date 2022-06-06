@@ -48,13 +48,6 @@ class HardDayTransactionError extends HardDayCommonError {
     }
 }
 
-class HardDayGrafanaError extends HardDayCommonError {
-    constructor(message, messages) {
-        super(message, messages);
-        this.name = 'HardDayGrafanaError';
-    }
-}
-
 module.exports = {
     HardDayCommonError,
     HardDayCredentialsError,
@@ -63,6 +56,5 @@ module.exports = {
     HardDayNotFoundError,
     HardDayDeletionError,
     HardDayTransactionError,
-    HardDayGrafanaError
 }
 

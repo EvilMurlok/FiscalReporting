@@ -16,8 +16,8 @@ import vFiscalReportCirculation from "@/views/circulation/v-fiscal-report-circul
 import vFiscalReportRemainders from "@/views/circulation/v-fiscal-report-remainders";
 import vFiscalReportCirculationHistory from "@/views/circulation/v-fiscal-report-circulation-history";
 
-// checks
-import vFiscalReportInspections from "@/views/checks/v-fiscal-report-inspections";
+// inspections
+import vFiscalReportInspections from "@/views/inspections/v-fiscal-report-inspections";
 
 // report
 import vFiscalReport from "@/views/report/v-fiscal-report";

@@ -11,7 +11,7 @@ module.exports = async(sequelize) => {
                 }]);
             }
             const stats = await sequelize.models.lottery.findAll({
-                attributes: ['name', [sequelize.literal('"lotteryNominals->nominal".value'), 'value'], [sequelize.fn('sum', sequelize.col('amountAtStart')), 'amount']],
+                attributes: ['name', [sequelize.literal('"lotteryNominals->nominal".value'), 'value'], [sequelize.fn('sum', sequelize.col('amountAtEnd')), 'amount']],
                 include: {
                     required: true,
                     model: sequelize.models.lotteryNominal,
@@ -89,16 +89,6 @@ module.exports = async(sequelize) => {
             allowNull: false,
             primaryKey: true,
             autoIncrement: true
-        },
-        amountAtStart: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            validate: {
-                min: {
-                    args: 0,
-                    msg: 'Количество оставшихся лотерейных квитанций не может быть отрицательным'
-                }
-            }
         },
         totalWin: {
             type: DataTypes.FLOAT,

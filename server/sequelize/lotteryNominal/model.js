@@ -1,5 +1,6 @@
 const {Model, DataTypes} = require('sequelize');
 const {LotteryNominalCredentialsError} = require("./errors");
+const {LotteryNominalStatCommonError} = require("../lotteryNominalStat/errors");
 
 module.exports = async (sequelize) => {
     class LotteryNominal extends Model {
@@ -11,13 +12,15 @@ module.exports = async (sequelize) => {
          * @param lotteryNames
          * @param nominalIds
          * @param nominalValues
+         * @param transaction
          * @returns {Promise<LotteryNominal[]>}
          */
         static findByLotteriesAndNominals = async({
                                                       lotteryIds = [],
                                                       lotteryNames = [],
                                                       nominalIds = [],
-                                                      nominalValues = []
+                                                      nominalValues = [],
+                                                      transaction = null
                                                   }) => {
             if (lotteryIds.length === 0 && lotteryNames.length === 0) {
                 throw new LotteryNominalCredentialsError(
@@ -69,12 +72,14 @@ module.exports = async (sequelize) => {
             );
             return await this.findAll({
                 include: includeParams,
-            })
+
+            }, {transaction: transaction});
         }
 
         /**
          * Обновить баланс у номиналов конкретной лотереи на внесенные значения
-         * @param lotteryId идентификатор лотореи
+         * @param date
+         * @param lotteryId идентификатор лотереи
          * @param nominalsInfo массив объектов вида: {
          * *         "id": id номинала,
          * *         "broughtCirculation": внесенное количество номинала
@@ -85,6 +90,7 @@ module.exports = async (sequelize) => {
         static updateAmountByLotteryAndNominals = async ({
                                                              lotteryId = 0,
                                                              nominalsInfo = null,
+                                                             date = "",
                                                              transaction = null
                                                          }) => {
             if (lotteryId <= 0) {
@@ -105,6 +111,15 @@ module.exports = async (sequelize) => {
                     }]
                 );
             }
+            if (!date) {
+                throw new LotteryNominalStatCommonError(
+                    'Неверные данные статистики номинала лотереи',
+                    [{
+                        text: 'Для обновления статистики по номиналу лотереи ' +
+                            'необходимо передать информацию о текущей дате'
+                    }]
+                );
+            }
             nominalsInfo.forEach(el => {
                 if (el.broughtCirculation < 0) {
                     throw new LotteryNominalCredentialsError(
@@ -117,14 +132,27 @@ module.exports = async (sequelize) => {
             });
             const lotteryNominals = await sequelize.models.lotteryNominal.findByLotteriesAndNominals({
                 lotteryIds: [lotteryId],
-                nominalIds: nominalsInfo.map(el => el.id)
+                nominalIds: nominalsInfo.map(el => el.id),
+                transaction: transaction
             });
-            let index = null;
+            const lotteryNominalStats = await sequelize.models.lotteryNominalStat.findAll({
+                where: {
+                    lotteryNominalId: lotteryNominals.map(ln => ln.id),
+                    date: date
+                }
+            });
+            lotteryNominalStats.forEach(el => console.log(el.id, el.lotteryNominalId));
             for (let ln of lotteryNominals) {
-                index = nominalsInfo.findIndex((el) => el.id === ln.nominalId);
+                // console.log(ln);
+                // console.log(ln.lotteryNominalStats);
+                let index = nominalsInfo.findIndex((el) => el.id === ln.nominalId);
+                let lns = lotteryNominalStats.find((el) => el.lotteryNominalId === ln.id);
+                // console.log(lns);
                 ln.amount += nominalsInfo[index].broughtCirculation;
+                lns.income += nominalsInfo[index].broughtCirculation;
                 // console.log('found index: ', index, 'toAdd', nominalsInfo[index].broughtCirculation, 'updated', ln.amount);
                 await ln.save({transaction: transaction});
+                await lns.save({transaction: transaction});
             }
             return lotteryNominals;
         }

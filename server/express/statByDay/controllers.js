@@ -1,6 +1,4 @@
-const config = require('../../config/dbConfigLocal');
-const moment = require("moment");
-const {Op} = require("sequelize");
+const config = require('../../config/dbConfigDocker');
 const dbConnection = require('../../sequelize/dbConnection').getInstance({
     config: config,
     mode: 'development'
@@ -104,7 +102,7 @@ const getBalanceReportForOneLottery = async (req, res) => {
         });
     } catch(e) {
         console.log(e);
-        let messages = '';
+        let messages;
         if (e.errors) {
             messages = e.errors.map(msg => {
                 return {text: msg.message};

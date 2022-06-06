@@ -2,111 +2,138 @@
   "partners": [
     {
       "name": "Карабоев/Ганджина (Душанбе)",
-      "closedAt": null
+      "closedAt": null,
+      "internalId": 400
     },
     {
       "name": "Айни 269/9км (Душанбе)",
-      "closedAt": null
+      "closedAt": null,
+      "internalId": 401
     },
     {
       "name": "Сомон/Гипрозем (Душанбе)",
-      "closedAt": null
+      "closedAt": null,
+      "internalId": 402
     },
     {
       "name": "Чавонон/Аэропорт (Душанбе)",
-      "closedAt": null
+      "closedAt": null,
+      "internalId": 403
     },
     {
       "name": "Айни/Дока (Душанбе)",
-      "closedAt": null
+      "closedAt": null,
+      "internalId": 404
     },
     {
       "name": "Спитамен 2, Нау 2 (Согд)",
-      "closedAt": null
+      "closedAt": null,
+      "internalId": 405
     },
     {
       "name": "Спитамен 1, Нау 1 (Согд)",
-      "closedAt": null
+      "closedAt": null,
+      "internalId": 406
     },
     {
       "name": "Гулакандоз, Пролетар 1 (Согд)",
-      "closedAt": null
+      "closedAt": null,
+      "internalId": 407
     },
     {
       "name": "ДЖ.Расулов, Пролетар 2 (Согд)",
-      "closedAt": null
+      "closedAt": null,
+      "internalId": 408
     },
     {
       "name": "Худжанд, 34мкр (Согд)",
-      "closedAt": null
+      "closedAt": null,
+      "internalId": 409
     },
     {
       "name": "Васе (Хатлон)",
-      "closedAt": null
+      "closedAt": null,
+      "internalId": 410
     },
     {
       "name": "Куляб 1 (Хатлон)",
-      "closedAt": null
+      "closedAt": null,
+      "internalId": 411
     },
     {
       "name": "Ура-Тюбе 2 (Согд)",
-      "closedAt": null
+      "closedAt": null,
+      "internalId": 412
     },
     {
       "name": "Дусти (Душанбе)",
-      "closedAt": null
+      "closedAt": null,
+      "internalId": 413
     },
     {
       "name": "Нахимова (Душанбе)",
-      "closedAt": null
+      "closedAt": null,
+      "internalId": 414
     },
     {
       "name": "Дехлави (Душанбе)",
-      "closedAt": null
+      "closedAt": null,
+      "internalId": 415
     },
     {
       "name": "Борбад (Хатлон)",
-      "closedAt": null
+      "closedAt": null,
+      "internalId": 416
     },
     {
       "name": "Зафарабад (Согд)",
-      "closedAt": null
+      "closedAt": null,
+      "internalId": 417
     },
     {
       "name":  "Гафурова (Душанбе)",
-      "closedAt":  "2021-11-07"
+      "closedAt":  "2021-11-07",
+      "internalId": 418
     },
     {
       "name":  "Лохути (Душанбе) ",
-      "closedAt":  "2021-11-09"
+      "closedAt":  "2021-11-09",
+      "internalId": 419
     },
     {
       "name":  "Сомониён, Рудаки (Душанбе) ",
-      "closedAt":  "2021-10-17"
+      "closedAt":  "2021-10-17",
+      "internalId": 420
     },
     {
       "name": "Турсунзаде, Сомони (Душанбе) ",
-      "closedAt": "2022-04-21"
+      "closedAt": "2022-04-21",
+      "internalId": 421
     },
     {
       "name": "Курган-Тюбе, Май (Халтон) ",
-      "closedAt": "2021-11-30"
+      "closedAt": "2021-11-30",
+      "internalId": 422
     },
     {
       "name": "Ура-Тюбе 1 (Согд) ",
-      "closedAt": "2021-11-30"
+      "closedAt": "2021-11-30",
+      "internalId": 423
     },
     {
       "name": "Шахристан (Согд) ",
-      "closedAt": "2021-10-15"
+      "closedAt": "2021-10-15",
+      "internalId": 424
     },
     {
       "name": "Корвон (Душанбе) ",
-      "closedAt": "2022-04-21"
+      "closedAt": "2022-04-21",
+      "internalId": 425
     },
     {
       "name": "Бустон (Согд)",
-      "closedAt": "2022-02-07"
+      "closedAt": "2022-02-07",
+      "internalId": 426
     }
   ]
 }

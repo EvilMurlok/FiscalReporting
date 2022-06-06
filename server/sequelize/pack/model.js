@@ -85,6 +85,7 @@ module.exports = async(sequelize) => {
             const lotteryNominals = await sequelize.models.lotteryNominal.updateAmountByLotteryAndNominals({
                 lotteryId: packInfo.lotteryId,
                 nominalsInfo: packInfo.nominals,
+                date: date,
                 transaction: transaction
             });
 

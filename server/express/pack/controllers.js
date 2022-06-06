@@ -1,5 +1,5 @@
-const config = require('../../config/dbConfigLocal');
 const moment = require("moment");
+const config = require('../../config/dbConfigDocker');
 const dbConnection = require('../../sequelize/dbConnection').getInstance({
     config: config,
     mode: 'development'
@@ -29,7 +29,7 @@ const dbConnection = require('../../sequelize/dbConnection').getInstance({
 *
 * */
 const makePack = async (req, res) => {
-    const {packInfo} = req.body;
+    const packInfo = req.body;
     const t = await dbConnection.sequelize.transaction();
     try {
         moment.locale();

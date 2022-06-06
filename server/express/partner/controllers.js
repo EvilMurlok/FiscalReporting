@@ -3,7 +3,7 @@ const dbConnection = require('../../sequelize/dbConnection').getInstance({config
 
 const getAllPartners = async (req, res) => {
     const allPartners = await dbConnection.models.partner.findAll({
-        attributes: ["id", "name", "closedAt"],
+        attributes: ["id", "name", "closedAt", "internalId"],
     });
     const [openedPartners, closedPartners] = [[], []];
     for (let partner of allPartners) {

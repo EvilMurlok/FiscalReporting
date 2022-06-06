@@ -15,15 +15,19 @@ module.exports = async(sequelize) => {
         },
         name: {
             type: DataTypes.STRING(70),
-            unique: {
-                msg: 'Уже есть партнер с таким названием'
-            },
+            // unique: {
+            //     msg: 'Уже есть партнер с таким названием'
+            // },
             allowNull: false,
             validate: {
                 notEmpty: {
                     msg: 'Необходимо указать название партнера'
                 }
             }
+        },
+        internalId: {
+            type: DataTypes.INTEGER,
+            allowNull: false
         },
         closedAt: {
             type: DataTypes.DATEONLY,

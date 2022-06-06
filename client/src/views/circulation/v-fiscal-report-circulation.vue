@@ -148,7 +148,6 @@ export default {
 
   watch: {
     'selectedLotteryId'(selectedLotteryId) {
-      console.log(selectedLotteryId);
       this.$http
           .get(`/stats/balance/${selectedLotteryId}/`)
           .then(res => {
@@ -161,27 +160,27 @@ export default {
                 nominal.value = Number(nominal.value);
                 this.nominals.push(nominal);
               }
-              console.log(this.nominals);
+              // сортировка по такому же принципу
+              let [sortedField, sortType] = ["", ""];
+              for (let sortedFieldIndex in this.sortData.sortFields) {
+                if (this.sortData.sortFields[sortedFieldIndex]) {
+                  [sortedField, sortType] = [sortedFieldIndex, this.sortData.sortFields[sortedFieldIndex]];
+                }
+              }
+              this.nominals.sort((lhs, rhs) => {
+                if (lhs[sortedField] > rhs[sortedField]) {
+                  return this.sortData.sortComparator[sortType + ">"];
+                }
+                if (lhs[sortedField] < rhs[sortedField]) {
+                  return this.sortData.sortComparator[sortType + "<"];
+                }
+                return 0;
+              });
             }
           })
           .catch(err => console.error(err));
 
-      // сортировка
-      let [sortedField, sortType] = ["", ""];
-      for (let sortedFieldIndex in this.sortData.sortFields) {
-        if (this.sortData.sortFields[sortedFieldIndex]) {
-          [sortedField, sortType] = [sortedFieldIndex, this.sortData.sortFields[sortedFieldIndex]];
-        }
-      }
-      this.nominals.sort((lhs, rhs) => {
-        if (lhs[sortedField] > rhs[sortedField]) {
-          return this.sortData.sortComparator[sortType + ">"];
-        }
-        if (lhs[sortedField] < rhs[sortedField]) {
-          return this.sortData.sortComparator[sortType + "<"];
-        }
-        return 0;
-      });
+
     }
   },
 
@@ -213,42 +212,47 @@ export default {
       const lottery = {
         lotteryId: this.selectedLotteryId,
         date: moment().format("YYYY-MM-DD"),
-        nominals: this.nominals.map(function (nominal) {
+        nominals: []
+      };
+      for (let nominal of this.nominals) {
+        if (nominal.broughtCirculation) {
+          lottery.nominals.push({
+            id: nominal.id,
+            broughtCirculation: nominal.broughtCirculation
+          });
+        }
+      }
+      this.nominals.map(function (nominal) {
+        if (nominal.broughtCirculation) {
           return {
             id: nominal.id,
             broughtCirculation: nominal.broughtCirculation
           };
-        })
-      };
-      console.log(lottery);
-      let [isSomeNotZero, isSomeNotNumber, rightNumber] = [false, false, /^[0-9]+$/];
-      for (let nominal of lottery.nominals) {
-        if (typeof nominal.broughtCirculation === "string" && !rightNumber.test(String(nominal.broughtCirculation))) {
-          isSomeNotNumber = true;
-          nominal.broughtCirculation = Number(nominal.broughtCirculation);
         }
-        console.log(typeof nominal.broughtCirculation, nominal.broughtCirculation);
-        if (nominal.broughtCirculation !== 0) {
-          isSomeNotZero = true;
-        }
-      }
+      });
 
-      if (!isSomeNotZero) {
+      if (!lottery.nominals.length) {
         this.messages_data.messages.push({
-          text: `В лоттерее надо заполнить данные хотя бы об одном номинале!`
+          text: `В лотерее надо заполнить данные хотя бы об одном номинале!`
         });
-      }
-      if (isSomeNotNumber) {
-        this.messages_data.messages.push({
-          text: "Вводиться должны исключительно неотрицательные целые числа!"
-        });
+      } else {
+        let [isSomeNotNumber, rightNumber] = [false, /^[0-9]+$/];
+        for (let nominal of lottery.nominals) {
+          if (typeof nominal.broughtCirculation === "string" && !rightNumber.test(String(nominal.broughtCirculation))) {
+            isSomeNotNumber = true;
+            nominal.broughtCirculation = Number(nominal.broughtCirculation);
+          }
+        }
+        if (isSomeNotNumber) {
+          this.messages_data.messages.push({
+            text: "Вводиться должны исключительно неотрицательные целые числа!"
+          });
+        }
       }
 
       if (!this.messages_data.messages.length) {
         this.$http
-            .post("/pack/make-pack/", {
-              packInfo: lottery
-            })
+            .post("/pack/make-pack/", lottery)
             .then(res => {
               if (res.data.isLoggedIn === false) {
                 breakAuth.breakAuth(res);

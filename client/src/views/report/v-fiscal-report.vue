@@ -159,7 +159,7 @@
                   <label class="form-check-label mb-1">Начало</label>
                   <b-form-input id="startDateOfReport"
                                 name="startDateOfReport"
-                                type="datetime-local"
+                                type="date"
                                 v-model="startDateOfReport"
                   >
                   </b-form-input>
@@ -168,7 +168,7 @@
                   <label class="form-check-label mb-1">Конец</label>
                   <b-form-input id="endDateOfReport"
                                 name="endDateOfReport"
-                                type="datetime-local"
+                                type="date"
                                 v-model="endDateOfReport"
                   >
                   </b-form-input>
@@ -399,7 +399,7 @@ export default {
     },
 
     maxAvailableDate: function () {
-      return moment(`${moment().subtract(1, "day").format().slice(0, 10)} 23:59`).format().slice(0, 16);
+      return moment().subtract(1, "day").format("YYYY-MM-DD");
     }
   },
 
@@ -506,8 +506,8 @@ export default {
   },
 
   created() {
-    this.startDateOfReport = moment(`${moment().subtract(1, "day").format().slice(0, 10)} 0:00`).format().slice(0, 16);
-    this.endDateOfReport = moment(`${moment().subtract(1, "day").format().slice(0, 10)} 23:59`).format().slice(0, 16);
+    this.startDateOfReport = moment().subtract(1, "day").format("YYYY-MM-DD");
+    this.endDateOfReport = moment().subtract(1, "day").format("YYYY-MM-DD");
     this.$http
         .get("/partner/get-all-partners/")
         .then(res => {
@@ -553,7 +553,7 @@ export default {
           text: "Выбранные даты могут быть исключительно прошлыми (то есть вчера и ранее)!"
         });
       }
-      if (this.startDateOfReport >= this.endDateOfReport) {
+      if (this.startDateOfReport > this.endDateOfReport) {
         this.messages_data.messages.push({
           text: "Начальная дата не может быть позже, чем конечная!"
         });

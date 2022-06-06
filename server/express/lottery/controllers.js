@@ -1,4 +1,4 @@
-const config = require('../../config/dbConfigLocal');
+const config = require('../../config/dbConfigDocker');
 const moment = require("moment");
 const dbConnection = require('../../sequelize/dbConnection').getInstance({
     config: config,

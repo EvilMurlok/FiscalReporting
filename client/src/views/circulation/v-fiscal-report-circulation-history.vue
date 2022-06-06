@@ -255,6 +255,7 @@ export default {
                 breakAuth.breakAuth(res);
               } else {
                 if (res.data.status === "success") {
+                  console.log(res.data.history);
                   this.historyLotteryData = res.data.history;
                 } else {
                   this.historyLotteryData = [];

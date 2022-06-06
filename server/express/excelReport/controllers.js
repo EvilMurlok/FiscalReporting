@@ -1,6 +1,5 @@
 const excel = require("exceljs");
-const config = require('../../config/dbConfigLocal');
-const moment = require("moment");
+const config = require('../../config/dbConfigDocker');
 const dbConnection = require('../../sequelize/dbConnection').getInstance({
     config: config,
     mode: 'development'
