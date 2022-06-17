@@ -89,69 +89,71 @@
                    class="ml-2"
               >
               </div>
-              <div class="form-group mt-5">
-                <div class="d-flex justify-content-end mb-1">
-                  <b-button variant="alt-info"
-                            class="m-1 pr-2 pl-2"
-                            size="sm"
-                            v-if="checkBoxesData.isSelectedDisabledAll === true"
-                            @click="deselectAll({type: 'disable'})"
+              <div v-if="disabledPartners.length > 0">
+                <div class="form-group mt-5">
+                  <div class="d-flex justify-content-end mb-1">
+                    <b-button variant="alt-info"
+                              class="m-1 pr-2 pl-2"
+                              size="sm"
+                              v-if="checkBoxesData.isSelectedDisabledAll === true"
+                              @click="deselectAll({type: 'disable'})"
+                    >
+                      <i class="si si-close opacity-50 mr-1"></i>Убрать все
+                    </b-button>
+                    <b-button v-else
+                              variant="alt-info"
+                              class="m-1 pr-2 pl-2"
+                              size="sm"
+                              @click="selectAll({type: 'disable'})"
+                    >
+                      <i class="si si-check opacity-50 mr-1"></i> Выделить все
+                    </b-button>
+                  </div>
+                  <b-form-checkbox-group
+                      v-model="checkBoxesData.disabledPartnersIds"
+                      id="disabledPartnersIds"
+                      stacked
                   >
-                    <i class="si si-close opacity-50 mr-1"></i>Убрать все
-                  </b-button>
-                  <b-button v-else
-                            variant="alt-info"
-                            class="m-1 pr-2 pl-2"
-                            size="sm"
-                            @click="selectAll({type: 'disable'})"
-                  >
-                    <i class="si si-check opacity-50 mr-1"></i> Выделить все
-                  </b-button>
-                </div>
-                <b-form-checkbox-group
-                    v-model="checkBoxesData.disabledPartnersIds"
-                    id="disabledPartnersIds"
-                    stacked
-                >
-                  <b-row class="mb-3">
-                    <b-col sm="4"></b-col>
-                    <b-col sm="6">
-                      <label class="form-check-label font-size-h4">Отключенные клубы</label>
-                    </b-col>
-                    <b-col sm="2"></b-col>
-                  </b-row>
-                  <b-row>
-                    <b-col sm="1"></b-col>
-                    <b-col sm="5">
-                      <b-form-checkbox v-for="club in disabledPartners.slice(0, halfDisablePartnersLength)"
-                                       :key="club.id"
-                                       :value="club.id"
-                                       class="mb-2"
-                      >
-                        <span class="text-muted">{{ club.name }} (до {{ club.closedAt }})</span>
-                      </b-form-checkbox>
-                    </b-col>
-                    <b-col sm="1"></b-col>
-                    <b-col sm="5">
-                      <b-form-checkbox v-for="club in disabledPartners.slice(halfDisablePartnersLength)"
-                                       :key="club.id"
-                                       :value="club.id"
-                                       class="mb-2"
+                    <b-row class="mb-3">
+                      <b-col sm="4"></b-col>
+                      <b-col sm="6">
+                        <label class="form-check-label font-size-h4">Отключенные клубы</label>
+                      </b-col>
+                      <b-col sm="2"></b-col>
+                    </b-row>
+                    <b-row>
+                      <b-col sm="1"></b-col>
+                      <b-col sm="5">
+                        <b-form-checkbox v-for="club in disabledPartners.slice(0, halfDisablePartnersLength)"
+                                         :key="club.id"
+                                         :value="club.id"
+                                         class="mb-2"
+                        >
+                          <span class="text-muted">{{ club.name }} (до {{ club.closedAt }})</span>
+                        </b-form-checkbox>
+                      </b-col>
+                      <b-col sm="1"></b-col>
+                      <b-col sm="5">
+                        <b-form-checkbox v-for="club in disabledPartners.slice(halfDisablePartnersLength)"
+                                         :key="club.id"
+                                         :value="club.id"
+                                         class="mb-2"
 
-                      >
-                        <span class="text-muted">{{ club.name }} (до {{ club.closedAt }})</span>
-                      </b-form-checkbox>
-                    </b-col>
-                  </b-row>
-                </b-form-checkbox-group>
-              </div>
-              <div :style="{
+                        >
+                          <span class="text-muted">{{ club.name }} (до {{ club.closedAt }})</span>
+                        </b-form-checkbox>
+                      </b-col>
+                    </b-row>
+                  </b-form-checkbox-group>
+                </div>
+                <div :style="{
                               'width': '90%',
                               'border-bottom': '1px solid #d8dce4ff',
                               'position': 'absolute',
                            }"
-                   class="ml-2"
-              >
+                     class="ml-2"
+                >
+                </div>
               </div>
               <b-row class="mt-5">
                 <b-col sm="1"></b-col>
@@ -364,10 +366,14 @@
             </tbody>
           </table>
         </div>
-        <b-button type="submit"
-                  variant="alt-success"
+        <b-button variant="alt-success"
                   size="sm"
                   class="mt-3"
+                  @click="createGlobalReport({
+                        from: startDateOfReport,
+                        to: endDateOfReport,
+                        partnerIds: [...checkBoxesData.availablePartnersIds, ...checkBoxesData.disabledPartnersIds]
+                      })"
         >
           <i class="far fa-file-excel m-1 mr-2"></i>Выгрузить в Excel
         </b-button>
@@ -535,6 +541,7 @@ export default {
                 this.reportTable.amountsOfSoldNominals = [];
                 [this.reportTable.sumTotalSold, this.reportTable.sumTotalTax, this.reportTable.sumTotalWin] = [0.0, 0.0, 0.0];
                 if (res.data.status === "success") {
+                  console.log(res.data.sellsData);
                   const tempReportTable = res.data.sellsData;
                   // сначала создаем массив из ВСЕХ полученных номиналов
                   for (let lottery of tempReportTable) {
@@ -574,32 +581,38 @@ export default {
                     for (let availableNominal of this.reportTable.availableNominals) {
                       const receivedNominal = lottery.nominals.find(nominal => nominal.value === availableNominal);
                       if (receivedNominal) {
+                        console.log(receivedNominal.sold);
                         tempNominals.push({value: receivedNominal.value, sold: receivedNominal.sold});
                       } else {
                         tempNominals.push({value: availableNominal, sold: "-"});
                       }
                     }
-                    this.reportTable.reportData.push({
-                      lotteryName: lottery.lotteryName,
-                      nominals: tempNominals,
-                      totalSold: lottery.totalSold,
-                      totalWin: lottery.totalWin,
-                      totalTax: lottery.totalTax
-                    });
-                  }
-                  // вычисляем суммарную статистику по каждой лотерее, по каждому номиналу
-                  for (let lottery of this.reportTable.reportData) {
+
+                    // вычисляем суммарную статистику по каждой лотерее, по каждому номиналу
                     this.reportTable.sumTotalSold += lottery.totalSold;
                     this.reportTable.sumTotalWin += lottery.totalWin;
                     this.reportTable.sumTotalTax += lottery.totalTax;
-                    for (let nominal of lottery.nominals) {
+                    for (let nominal of tempNominals) {
                       // если в суммировании такой номинал еще не встречался, тогда добавляем его и приравниваем к 0
                       if (nominal.sold !== "-") {
                         const amountOfSoldNominal = this.reportTable.amountsOfSoldNominals.find(amount => amount.value === nominal.value);
                         amountOfSoldNominal.sold += nominal.sold;
                       }
                     }
+
+                    // добавляем в итоговый массив преобразованные данные
+                    this.reportTable.reportData.push({
+                      lotteryName: lottery.lotteryName,
+                      nominals: tempNominals,
+                      totalSold: +lottery.totalSold.toFixed(2),
+                      totalWin: +lottery.totalWin.toFixed(2),
+                      totalTax: +lottery.totalTax.toFixed(2)
+                    });
                   }
+
+                  this.reportTable.sumTotalSold = +this.reportTable.sumTotalSold.toFixed(2);
+                  this.reportTable.sumTotalWin = +this.reportTable.sumTotalWin.toFixed(2);
+                  this.reportTable.sumTotalTax = +this.reportTable.sumTotalTax.toFixed(2);
                   this.reportTable.isVisible = true;
                 }
                 this.loading.isLoading = false;
@@ -622,12 +635,19 @@ export default {
       }
     },
 
-    createGlobalReport() {
+    createGlobalReport({from = "", to = "", partnerIds = []}) {
       if (this.messages_data.messages.length !== 0) {
         this.messages_data = {type: "warning", messages: []};
       }
       this.$http
-          .get("/excel-reports/create-global-report/", {responseType: "blob"})
+          .get("/excel-reports/create-global-report/", {
+            responseType: "blob",
+            params: {
+              from: from,
+              to: to,
+              partnerIds: partnerIds
+            }
+          })
           .then(res => {
             console.log(res.data);
             FileSaver.saveAs(res.data, "FiscalReport.xlsx")

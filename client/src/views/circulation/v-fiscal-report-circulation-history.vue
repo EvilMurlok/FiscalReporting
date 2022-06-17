@@ -289,7 +289,7 @@ export default {
               if (res.data.status === "warning") {
                 this.messages_data = {type: res.data.status, messages: res.data.messages};
               } else {
-                FileSaver.saveAs(res.data, "CirculationsPerDay.xlsx")
+                FileSaver.saveAs(res.data, "IncomesHistoryPerDay.xlsx")
               }
             })
             .catch(err => console.error(err));

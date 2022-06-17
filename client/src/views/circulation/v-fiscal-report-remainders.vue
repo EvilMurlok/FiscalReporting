@@ -351,6 +351,7 @@ export default {
         });
       }
       if (!this.messages_data.messages.length) {
+        console.log(this.dateOfReport);
         this.$http
             .get("/excel-reports/create-remainders-report/",
                 {
@@ -363,7 +364,7 @@ export default {
               if (res.data.status === "warning") {
                 this.messages_data = {type: res.data.status, messages: res.data.messages};
               } else {
-                FileSaver.saveAs(res.data, "CirculationsPerDay.xlsx")
+                FileSaver.saveAs(res.data, "RemaindersPerDay.xlsx");
               }
             })
             .catch(err => console.error(err));
