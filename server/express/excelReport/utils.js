@@ -1,4 +1,13 @@
-const LETTERS = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
+const LETTERS = (() => {
+    const tempLetters = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
+    const readyLetters = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
+    for (let i = 0; i < 6; ++i) {
+        for (let j = 0; j < 26; ++j) {
+            readyLetters.push(`${tempLetters[i]}${readyLetters[j]}`);
+        }
+    }
+    return readyLetters;
+})();
 const BORDER = {
     top: {style: "thin", color: {argb: 'rgba(0,0,0,0)'}},
     left: {style: "thin", color: {argb: 'rgba(0,0,0,0)'}},
